@@ -11,12 +11,16 @@
 library(umap)
 library(tidyverse)
 
-## Getting input file path
-args = commandArgs(trailingOnly=TRUE)
+
+## Setting working directory
+
+setwd('C:/Users/kruegerc/OneDrive - BABRAHAM/hackathon/Kartavya/base_composition/scripts')
+
 
 ## Loading gathered library compositions
+
 read_tsv("../data/output_210709.tsv") -> output
-read_tsv(cat(args[2], "/test_library_composition.txt")) -> test.import
+read_tsv("../data/test_library_composition.txt") -> test.import
 
 
 ## Some tidying
@@ -120,7 +124,29 @@ compositions_umap_results %>%
   mutate(lib_type = if_else(lib_type == "miRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
   mutate(lib_type = if_else(lib_type == "ncRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
   mutate(lib_type = if_else(lib_type == "ATAC-seq", "ATAC-Seq", lib_type)) %>% 
-  write_csv(cat(args[2], "umap_coordinates.csv"))
+  write_csv("../output/tables/umap_coordinates_210730.csv")
 
 
-ggsave(cat(args[2], "umap_plot.png"), width = 6, height = 4, units = "in")
+ggsave("../output/plots/umap_plot.png", width = 6, height = 4, units = "in")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
