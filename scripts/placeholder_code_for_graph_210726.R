@@ -12,7 +12,7 @@ library(umap)
 library(tidyverse)
 
 ## Getting input file path
-args = commandArgs()
+args = commandArgs(trailingOnly=TRUE)
 
 ## Loading gathered library compositions
 
@@ -128,4 +128,4 @@ compositions_umap_results %>%
   mutate(lib_type = if_else(lib_type == "ATAC-seq", "ATAC-Seq", lib_type)) %>% 
   write_csv(nullfile())
 
-ggsave(filename=args[6], path="/tmp", device="png", width = 6, height = 4, units = "in")
+ggsave(filename=args[2], path="/tmp", device="png", width = 6, height = 4, units = "in")

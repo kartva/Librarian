@@ -728,6 +728,7 @@ dependencies = [
 [[package]]
 name = "fastq2comp"
 version = "0.2.0"
+source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions#7c3dfc532efea425a3fa7184fd7d54a1cdf65636"
 dependencies = [
  "flate2",
  "lazy_static",
@@ -1879,7 +1880,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "server"
+name = "server-web-library-base-compositions"
 version = "0.1.0"
 dependencies = [
  "actix-cors",

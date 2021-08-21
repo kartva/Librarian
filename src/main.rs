@@ -1,7 +1,13 @@
+/*
+Currently, test responses take around 6-7 seconds, which is far longer than the recommended 500 ms.
+Since this is a long-running calculation, consider using this advice:
+https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
+*/
+
 use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web};
 use actix_cors;
 use fastq2comp::BaseComp;
-use std::{env, fs::{File, canonicalize}, io::{Read, Write}, process::{Command, Stdio}};
+use std::{env, fs::File, io::{Read, Write}, process::{Command, Stdio}};
 use simple_logger::SimpleLogger;
 use log;
 
@@ -22,10 +28,10 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
         );
 
         let mut child = Command::new("Rscript")
-            .current_dir(dbg!(canonicalize("../").unwrap()))
             .stdin(Stdio::piped())
             .stdout(Stdio::inherit())
             .arg("scripts/placeholder_code_for_graph_210726.R")
+            .arg("--args")
             .arg(&dbg!(std::path::PathBuf::from(tmpfile.clone()).file_name().unwrap()))
             .spawn()
             .expect("Failed to spawn child process");
@@ -68,7 +74,9 @@ async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
     HttpServer::new(|| {
-        let cors = actix_cors::Cors::permissive();
+        let cors = actix_cors::Cors::default()
+            .allowed_origin("")
+            .allowed_methods(vec!["POST"]);
         SimpleLogger::new().with_level(log::LevelFilter::Trace).init().unwrap();
 
         App::new()
@@ -79,7 +87,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/plot_comp", web::post().to(plot_comp))
             )
     })
-    .bind(("127.0.0.1", {
+    .bind(("0.0.0.0", {
         env::var("PORT")
             .ok()
             .and_then(|port| port.parse().ok())
