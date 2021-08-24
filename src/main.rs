@@ -43,11 +43,11 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
             stdin.write_all(input.as_bytes()).expect("Failed to write to stdin")
         );
 
-        match child.wait() {
+        let res = match child.wait() {
             Ok(e) => {
                 if !e.success() {return Err(format!("{:?}", e))};
                 Ok({
-                    let mut f = File::open(tmpfile).expect("Unable to open tempfile");
+                    let mut f = File::open(&tmpfile).expect("Unable to open tempfile");
                     let mut o = Vec::new();
                     if f.read_to_end(&mut o).expect("Unable to read tempfile") == 0 {
                         panic!("Image file is empty.")
@@ -56,7 +56,11 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
                 })
             },
             Err(e) => Err(format!("{:?}", e))
-        }
+        };
+
+        std::fs::remove_file(&tmpfile).expect("Error deleting tmpfile.");
+
+        res
     }).await;
 
     match output {
