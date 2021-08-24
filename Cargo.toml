@@ -11,6 +11,5 @@ serde = "1.0.126"
 serde_json = "1.0.64"
 fastq2comp = { git = "https://github.com/ChristelKrueger/Library_Base_Compositions" }
 futures = "0.3.16"
-actix-cors = "0.5.4"
 log = "0.4.14"
 simple_logger = "1.13.0"

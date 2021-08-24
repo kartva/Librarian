@@ -5,7 +5,6 @@ https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
 */
 
 use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web};
-use actix_cors;
 use fastq2comp::BaseComp;
 use std::{env, fs::File, io::{Read, Write}, process::{Command, Stdio}};
 use simple_logger::SimpleLogger;
@@ -74,13 +73,9 @@ async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
     HttpServer::new(|| {
-        let cors = actix_cors::Cors::default()
-            .allowed_origin("")
-            .allowed_methods(vec!["POST"]);
         SimpleLogger::new().with_level(log::LevelFilter::Trace).init().unwrap();
 
         App::new()
-            .wrap(cors)
             .wrap(middleware::Logger::default())
             .service(
                 web::scope("/api")
