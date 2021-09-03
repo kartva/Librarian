@@ -13,3 +13,4 @@ fastq2comp = { git = "https://github.com/ChristelKrueger/Library_Base_Compositio
 futures = "0.3.16"
 log = "0.4.14"
 simple_logger = "1.13.0"
+actix-files = "0.5.0"

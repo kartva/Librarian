@@ -4,12 +4,14 @@ Since this is a long-running calculation, consider using this advice:
 https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
 */
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web};
+use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web, post};
 use fastq2comp::BaseComp;
 use std::{env, fs::File, io::{Read, Write}, process::{Command, Stdio}};
 use simple_logger::SimpleLogger;
-use log;
+use log::{self, debug};
+use actix_files::Files;
 
+#[post("/api/plot_comp")]
 async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
     let mut input = comp.into_inner().lib.into_iter().flat_map(|b| b.bases.iter()).
         fold(String::new(), |acc, curr| acc + &curr.to_string() + "\t");
@@ -35,7 +37,7 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
             .spawn()
             .expect("Failed to spawn child process");
 
-        eprintln!("Writing to Rscript stdin: {:?}", input);
+        debug!("Writing to Rscript stdin: {:?}", input);
 
         let mut stdin = child.stdin.take().expect("Failed to open stdin");
 
@@ -81,10 +83,8 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(middleware::Logger::default())
-            .service(
-                web::scope("/api")
-                    .route("/plot_comp", web::post().to(plot_comp))
-            )
+            .service(plot_comp)
+            .service(Files::new("/", "static/").index_file("index.html"))
     })
     .bind(("0.0.0.0", {
         env::var("PORT")
