@@ -92,6 +92,15 @@ test_umap %>%
   rename(SRR = rowname, UMAP1 = V1, UMAP2 = V2) -> test_coordinates
 
 
+## Plotting colours
+
+colours <- c("#1c3144","#d00000","#ffba08","#cb429f","#3f88c5","#1be7ff","#3bb273","#7e7f9a","#e09891")
+types <- c("ATAC-Seq","Bisulfite-Seq", "ChIA-PET","ChIP-Seq", "Hi-C", "MeDIP-Seq","RIP-Seq", "RNA-Seq", "small_RNA-Seq")
+
+colour_mapping <- tibble(library_type = types,
+                         colours = colours)
+
+
 ## Plotting
 
 compositions_umap_results %>%
@@ -102,12 +111,14 @@ compositions_umap_results %>%
   mutate(lib_type = if_else(lib_type == "ATAC-seq", "ATAC-Seq", lib_type)) %>% 
   ggplot(aes(UMAP1,UMAP2, colour = lib_type, group = SRR)) +
   geom_point(size = 1.5) +
-  geom_point(data = test_coordinates, size = 5, colour = "#33ff66") +
+  geom_point(data = test_coordinates, colour = "#7FFF00", shape = 1, size = 4, stroke = 2) +
   theme_bw(base_size = 14) +
   theme(legend.title = element_text(size = 12)) +
-  ylim(-12, 12) +
+  ylim(-10, 10) +
   xlim(-12, 25) +
+  coord_fixed() +
   guides(colour = guide_legend(override.aes = list(size=4))) + 
+  scale_colour_manual(values = colours) +
   theme(legend.title = element_blank()) -> compositions_umap_results_plot
 
 compositions_umap_results_plot
@@ -120,12 +131,161 @@ compositions_umap_results_plot
 
 ## Coordinates and metadata
 
-compositions_umap_results %>%
+# compositions_umap_results %>%
+#   filter(UMAP1 > -12 & UMAP1 < 25) %>% 
+#   filter(UMAP2 > -12 & UMAP2 < 12) %>%           #filtering to the displayed area
+#   mutate(lib_type = if_else(lib_type == "miRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
+#   mutate(lib_type = if_else(lib_type == "ncRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
+#   mutate(lib_type = if_else(lib_type == "ATAC-seq", "ATAC-Seq", lib_type)) %>% 
+#   write_csv("../output/tables/umap_coordinates_210815.csv")
+# 
+# 
+# ggsave("../output/plots/umap_plot.png", width = 6, height = 4, units = "in")
+
+
+
+
+## Introducing a grid to the plot
+
+compositions_umap_results %>% 
   filter(UMAP1 > -12 & UMAP1 < 25) %>% 
   filter(UMAP2 > -12 & UMAP2 < 12) %>%           #filtering to the displayed area
   mutate(lib_type = if_else(lib_type == "miRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
   mutate(lib_type = if_else(lib_type == "ncRNA-Seq", "small_RNA-Seq", lib_type)) %>% 
   mutate(lib_type = if_else(lib_type == "ATAC-seq", "ATAC-Seq", lib_type)) %>% 
-  write_csv(nullfile())
+  mutate(UMAP1_grid = round(UMAP1)) %>% 
+  mutate(UMAP2_grid = round(UMAP2)) %>% 
+  unite(col = "grid_ID", UMAP1_grid, UMAP2_grid, remove = F) %>% 
+  group_by(grid_ID) %>% 
+  add_count(name = "n per raster point") %>% 
+  ungroup() %>% 
+  group_by(lib_type) %>% 
+  add_count(name = "n per lib_type") %>% 
+  ungroup() -> umap_grid
+
+
+## Calculating the percentages of the library type that is located in each grid tile
+## total is number of library type examples
+
+umap_grid %>% 
+  group_by(grid_ID, lib_type) %>% 
+  count() %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = lib_type, values_from = n, values_fill = 0) %>% 
+  mutate_at(vars(2:10), ~. / sum(.)*100) -> grid_type_percentages
+
+
+## Calculating the percentages of each library type located in each grid tile
+## total is number of libraries in the grid tile
+
+umap_grid %>% 
+  group_by(grid_ID, lib_type) %>% 
+  count() %>% 
+  ungroup() %>% 
+  group_by(grid_ID) %>% 
+  mutate(n_per_tile = sum(n)) %>% 
+  ungroup() %>% 
+  mutate(percentage_per_tile = n/n_per_tile *100) %>% 
+  select(grid_ID, lib_type, percentage_per_tile) %>% 
+  pivot_wider(names_from = lib_type, values_from = percentage_per_tile, values_fill = 0)-> grid_tile_percentages
+
+
+## Joining with the other umap plotting information
+
+umap_grid %>% 
+  select(-`n per raster point`, -`n per lib_type`) %>% 
+  left_join(grid_type_percentages) -> umap_grid_type # percentage of library type
+
+umap_grid %>% 
+  select(-`n per raster point`, -`n per lib_type`) %>% 
+  left_join(grid_tile_percentages) -> umap_grid_tile # percentage of tile total
+
+
+## Long format for plotting
+
+umap_grid_type %>% 
+  select(grid_ID, UMAP1_grid, UMAP2_grid, 11:last_col()) %>% 
+  distinct(grid_ID, .keep_all = T) %>% 
+  pivot_longer(4:last_col(), names_to = "library_type", values_to = "percentage") -> umap_grid_type_long
+
+umap_grid_tile %>% 
+  select(grid_ID, UMAP1_grid, UMAP2_grid, 11:last_col()) %>% 
+  distinct(grid_ID, .keep_all = T) %>% 
+  pivot_longer(4:last_col(), names_to = "library_type", values_to = "percentage") -> umap_grid_tile_long
+
+
+## Plotting percent of total library 
+
+umap_grid_type_long %>% 
+  mutate(percentage = if_else(percentage > 15, 15, percentage)) %>% # capping probablility at 15 % for display
+  ggplot(aes(UMAP1_grid,UMAP2_grid, fill = percentage)) +
+  theme_bw(base_size = 14) +
+  theme(legend.title = element_blank(), axis.title = element_blank(), panel.background = element_rect(fill = "#faebdd"), plot.title = element_text(size = 14, hjust = 0.5)) +
+  ylim(-10, 10) +
+  xlim(-12,25) +
+  coord_fixed() +
+  geom_tile() +
+  scale_fill_viridis_c(option = "rocket", direction = -1) +
+  geom_point(data = test_coordinates, aes(UMAP1, UMAP2), fill = "black", colour = "#609CE1", shape = 1, size = 3, stroke = 2 ) +
+  ggtitle("percent of library") +
+  facet_wrap(facets = "library_type") 
+
+
+## Plotting percent of tile 
+
+umap_grid_tile_long %>% 
+  #mutate(percentage = if_else(percentage > 15, 15, percentage)) %>% # capping probablility at 15 % for display
+  ggplot(aes(UMAP1_grid,UMAP2_grid, fill = percentage)) +
+  theme_bw(base_size = 14) +
+  theme(legend.title = element_blank(), axis.title = element_blank(), panel.background = element_rect(fill = "#faebdd"), plot.title = element_text(size = 14, hjust = 0.5)) +
+  ylim(-10, 10) +
+  xlim(-12,25) +
+  coord_fixed() +
+  geom_tile() +
+  scale_fill_viridis_c(option = "rocket", direction = -1) +
+  geom_point(data = test_coordinates, aes(UMAP1, UMAP2), fill = "black", colour = "#609CE1", shape = 1, size = 3, stroke = 2) +
+  ggtitle("percent of tile") +
+  facet_wrap(facets = "library_type") 
+
+
+## Pulling out probabilities for the test library
+
+test_coordinates %>% 
+  mutate(UMAP1_grid = round(UMAP1)) %>% 
+  mutate(UMAP2_grid = round(UMAP2)) %>% 
+  unite(col = "grid_ID", UMAP1_grid, UMAP2_grid) %>% 
+  pull(grid_ID) -> test_ID
+
+grid_type_percentages %>% 
+  filter(grid_ID == test_ID) %>% 
+  select(-grid_ID) %>% 
+  pivot_longer(1:last_col(), names_to = "library_type", values_to = "percent_of_library") -> test_percentage_library
+
+grid_tile_percentages %>% 
+  filter(grid_ID == test_ID) %>% 
+  select(-grid_ID) %>% 
+  pivot_longer(1:last_col(), names_to = "library_type", values_to = "percent_of_tile") -> test_percentage_tile
+
+test_percentage_library %>% 
+  left_join(test_percentage_tile) %>% 
+  mutate(library_type = fct_reorder(library_type, percent_of_library, .fun = min)) %>% 
+  arrange(library_type) -> test_stats
+
+test_stats %>% 
+  pivot_longer(2:3, values_to = "percent") -> test_stats_long
+
+
+## Plotting grid stats for test library
+
+test_stats_long %>% 
+  ggplot(aes(library_type, percent, fill = library_type)) +
+  geom_col() +
+  scale_fill_manual(values = test_stats %>% 
+                      left_join(colour_mapping) %>% 
+                      pull(colours)) +
+  facet_wrap(facets = "name", ncol = 2, scales = "free") +
+  coord_flip() +
+  theme_bw(base_size = 14) +
+  theme(axis.title = element_blank(), legend.position = "none")
 
 ggsave(filename=args[2], path="/tmp", device="png", width = 6, height = 4, units = "in")
