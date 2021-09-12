@@ -1,0 +1,3 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/DesmondWillowbrook/Web_Library_Base_Compositions
