@@ -84,7 +84,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .service(plot_comp)
-            .service(Files::new("/", "static/").index_file("index.html"))
+            .service(Files::new("/", "frontend/dist/").index_file("index.html"))
     })
     .bind(("0.0.0.0", {
         env::var("PORT")

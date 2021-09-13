@@ -24,7 +24,7 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY ./data ./data
-COPY ./frontend/dist ./static
+COPY ./frontend/dist ./frontend/dist
 COPY ./scripts ./scripts
 COPY --from=build /app/target/release/server-web-library-base-compositions ./
 EXPOSE 8186
