@@ -18,22 +18,21 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
     input.pop(); // remove trailing ',' to make it valid tsv
 
     let output = web::block(move || {
-        let tmpfile = dbg!(
-            String::from_utf8_lossy(
+        let tmpfile = String::from_utf8_lossy(
                 &Command::new("mktemp")
                     .output()
                     .expect("Temporary file creation failed.")
                 .stdout
                 // removes the \n which mktemp appends
-            ).to_string().split_ascii_whitespace().next().unwrap().to_owned()
-        );
+            ).to_string().split_ascii_whitespace().next().unwrap().to_owned();
+        debug!("Tempfile: {:?}", tmpfile);
 
         let mut child = Command::new("Rscript")
             .stdin(Stdio::piped())
             .stdout(Stdio::inherit())
             .arg("scripts/placeholder_code_for_graph_210726.R")
             .arg("--args")
-            .arg(&dbg!(std::path::PathBuf::from(tmpfile.clone()).file_name().unwrap()))
+            .arg(&tmpfile)
             .spawn()
             .expect("Failed to spawn child process");
 
@@ -52,7 +51,7 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
                     let mut f = File::open(&tmpfile).expect("Unable to open tempfile");
                     let mut o = Vec::new();
                     if f.read_to_end(&mut o).expect("Unable to read tempfile") == 0 {
-                        panic!("Image file is empty.")
+                        panic!("Temp file is empty.")
                     }
                     o
                 })
@@ -67,7 +66,7 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
 
     match output {
         Ok(o) => HttpResponse::Ok()
-            .content_type("image/png")
+            .content_type("application/pdf")
             .body(o),
         Err(_e) => HttpResponse::InternalServerError().finish()
     }

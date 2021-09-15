@@ -13,6 +13,7 @@ library(tidyverse)
 
 ## Getting input file path
 args = commandArgs(trailingOnly=TRUE)
+pdf(file=args[2])
 
 ## Loading gathered library compositions
 
@@ -121,7 +122,7 @@ compositions_umap_results %>%
   scale_colour_manual(values = colours) +
   theme(legend.title = element_blank()) -> compositions_umap_results_plot
 
-compositions_umap_results_plot
+print(compositions_umap_results_plot)
 
 ## This here is the interactive version which displays the SRR numbers
 ## Not sure we need this, but it could be an example to try out the interactivity
@@ -230,6 +231,7 @@ umap_grid_type_long %>%
   ggtitle("percent of library") +
   facet_wrap(facets = "library_type") 
 
+print (umap_grid_type_long)
 
 ## Plotting percent of tile 
 
@@ -247,6 +249,7 @@ umap_grid_tile_long %>%
   ggtitle("percent of tile") +
   facet_wrap(facets = "library_type") 
 
+print (umap_grid_tile_long)
 
 ## Pulling out probabilities for the test library
 
@@ -288,4 +291,6 @@ test_stats_long %>%
   theme_bw(base_size = 14) +
   theme(axis.title = element_blank(), legend.position = "none")
 
-ggsave(filename=args[2], path="/tmp", device="png", width = 6, height = 4, units = "in")
+print(test_stats_long)
+
+dev.off()
