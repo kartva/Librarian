@@ -9,7 +9,7 @@ use fastq2comp::BaseComp;
 use serde_json::Value;
 use std::{env, fs::{File, read_dir}, io::{Read, Write}, process::{Command, Stdio}};
 use simple_logger::SimpleLogger;
-use log::{self, debug, warn};
+use log::{self, debug, warn, trace};
 use actix_files::Files;
 use base64::{self, STANDARD};
 
@@ -50,8 +50,6 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
             .spawn()
             .expect("Failed to spawn child process");
 
-        debug!("Writing to Rscript stdin: {:?}", input);
-
         let mut stdin = child.stdin.take().expect("Failed to open stdin");
 
         std::thread::spawn (move ||
@@ -89,7 +87,9 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
                 Some(Value::String(base64::encode_config(&buf, STANDARD)))
             })
             .collect::<Vec<_>>();
-        //std::fs::remove_dir_all(&tmpdir).expect("Error deleting tmpfile.");
+
+        trace! ("Deleting files.");
+        std::fs::remove_dir_all(&tmpdir).expect("Error deleting tmpfile.");
 
         Ok(Value::Array(out_arr))
     }).await;
