@@ -4,12 +4,25 @@ Since this is a long-running calculation, consider using this advice:
 https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
 */
 
-use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web, post};
+use actix_web::{App, HttpResponse, HttpServer, Responder, middleware, web, post, error::BlockingError};
 use fastq2comp::BaseComp;
-use std::{env, fs::File, io::{Read, Write}, process::{Command, Stdio}};
+use serde_json::Value;
+use std::{env, fs::{File, read_dir}, io::{Read, Write}, process::{Command, Stdio}};
 use simple_logger::SimpleLogger;
-use log::{self, debug};
+use log::{self, debug, warn};
 use actix_files::Files;
+use base64::{self, STANDARD};
+
+// Look into https://actix.rs/docs/errors/ to improve error handling
+/*
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+enum ServerError {
+    #[error("R script gave a non-zero response. Output:\n`{0}`")]
+    RScriptError(String),
+}
+*/
 
 #[post("/api/plot_comp")]
 async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
@@ -18,21 +31,22 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
     input.pop(); // remove trailing ',' to make it valid tsv
 
     let output = web::block(move || {
-        let tmpfile = String::from_utf8_lossy(
+        let tmpdir = String::from_utf8_lossy(
                 &Command::new("mktemp")
+                    .arg("-d")
                     .output()
                     .expect("Temporary file creation failed.")
                 .stdout
                 // removes the \n which mktemp appends
-            ).to_string().split_ascii_whitespace().next().unwrap().to_owned();
-        debug!("Tempfile: {:?}", tmpfile);
+            ).to_string().split('\n').next().unwrap().to_owned();
+        debug!("Tempdir: {:?}", tmpdir);
 
         let mut child = Command::new("Rscript")
             .stdin(Stdio::piped())
             .stdout(Stdio::inherit())
             .arg("scripts/placeholder_code_for_graph_210726.R")
             .arg("--args")
-            .arg(&tmpfile)
+            .arg(&tmpdir)
             .spawn()
             .expect("Failed to spawn child process");
 
@@ -44,33 +58,51 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
             stdin.write_all(input.as_bytes()).expect("Failed to write to stdin")
         );
 
-        let res = match child.wait() {
-            Ok(e) => {
-                if !e.success() {return Err(format!("{:?}", e))};
-                Ok({
-                    let mut f = File::open(&tmpfile).expect("Unable to open tempfile");
-                    let mut o = Vec::new();
-                    if f.read_to_end(&mut o).expect("Unable to read tempfile") == 0 {
-                        panic!("Temp file is empty.")
+        let exit_status = child.wait().expect("Error waiting on child to exit.");
+        if !exit_status.success() {return Err("RScript exited unsuccessfully.")};
+
+        let mut buf = Vec::new();
+
+        let out_arr = read_dir(&tmpdir).unwrap()
+            .filter_map(|e| {
+                if e.is_err() {warn!("Error iterating over dir {:?}, skipping file.", &tmpdir)};
+                e.ok()
+            })
+            .filter_map(|e| {
+                let f = File::open(e.path());
+                if f.is_err() {warn! ("Error opening file {:?} due to error {:?}", e.path(), f)};
+                f.ok()
+            })
+            .filter_map(|mut f| {
+                buf.clear();
+                match f.read_to_end(&mut buf) {
+                    Ok(n) => if n == 0 {
+                        warn! ("File is empty.");
+                        return None;
+                    },
+                    Err(e) => {
+                        warn! ("Unable to read tempfile {:?} with err {:?}", f, e);
+                        return None;
                     }
-                    o
-                })
-            },
-            Err(e) => Err(format!("{:?}", e))
-        };
+                };
 
-        std::fs::remove_file(&tmpfile).expect("Error deleting tmpfile.");
+                Some(Value::String(base64::encode_config(&buf, STANDARD)))
+            })
+            .collect::<Vec<_>>();
+        //std::fs::remove_dir_all(&tmpdir).expect("Error deleting tmpfile.");
 
-        res
+        Ok(Value::Array(out_arr))
     }).await;
 
     match output {
         Ok(o) => HttpResponse::Ok()
-            .content_type("application/pdf")
+            .content_type("application/json")
             .body(o),
-        Err(_e) => HttpResponse::InternalServerError().finish()
+        Err(blocking_e) => match blocking_e {
+            BlockingError::Error(s) => HttpResponse::InternalServerError().body(s),
+            BlockingError::Canceled => panic!("Error blocking threadpool?")
+        }
     }
-
 }
 
 #[actix_web::main]
