@@ -13,7 +13,7 @@ library(tidyverse)
 
 ## Getting input file path
 args = commandArgs(trailingOnly=TRUE)
-png(file=file.path(args[2], "graph_%d.png"))
+png(file=file.path(args[2], "graph_%d.png"), width = 720, height = 720,)
 
 ## Loading gathered library compositions
 
