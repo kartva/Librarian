@@ -1,1 +1,7 @@
-target/
+server/target
+
+frontend/node_modules
+frontend/target
+frontend/pkg
+frontend/wasm-pack.log
+frontend/dist
