@@ -115,13 +115,25 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .service(plot_comp)
-            .service(Files::new("/", "frontend/dist/").index_file("index.html"))
+            .service (
+                Files::new (
+                    "/", 
+                    env::var("LIBRARIAN_INDEX_PATH").ok()
+                        .unwrap_or_else(|| {
+                            warn!("LIBRARIAN_INDEX_PATH not found, using default path (../frontend/dist)");
+                            "../frontend/dist".to_string()
+                        })
+                )
+                .index_file("index.html"))
     })
     .bind(("0.0.0.0", {
-        env::var("PORT")
+        env::var("LIBRARIAN_PORT")
             .ok()
             .and_then(|port| port.parse().ok())
-            .unwrap_or_else(|| 8186)
+            .unwrap_or_else (|| {
+                warn!("LIBRARIAN_PORT not found, using default port 8186.");
+                8186
+            })
         }
     ))?
     .run()
