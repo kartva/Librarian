@@ -1,3 +1,5 @@
+# Skip to line 76 for actual setup, this is setting up both Rust and NPM.
+
 FROM buildpack-deps:buster as frontend
 
 # https://github.com/rust-lang/docker-rust/blob/878a3bd2f3d92e51b9984dba8f8fd8881367a063/1.55.0/buster/Dockerfile
@@ -85,9 +87,15 @@ RUN npm run build
 # Build Rust binaries
 FROM rust AS build
 WORKDIR /app
-COPY ./server/Cargo.toml Cargo.toml
-COPY ./server/Cargo.lock Cargo.lock
+
+RUN cargo init --bin
+COPY ./server/Cargo.toml ./Cargo.toml
+COPY ./server/Cargo.lock ./Cargo.lock
+RUN cargo build --release
+RUN rm src/*.rs
+
 COPY ./server/src ./src
+RUN ls ./target/release/deps/ && rm ./target/release/deps/server_web_library_base_compositions*
 
 RUN cargo build --release
 
@@ -103,9 +111,13 @@ RUN apt-get update \
 	&& Rscript -e ' install.packages(c("tidyverse", "umap")) ' \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY ./server/data ./server/scripts ./
+COPY ./server/data/ ./data
+COPY ./server/scripts ./scripts
 COPY --from=frontend /app/dist/ ./frontend/dist/
 COPY --from=build /app/target/release/server-web-library-base-compositions ./
+
+ENV LIBRARIAN_INDEX_PATH "./frontend/dist"
+ENV LIBRARIAN_PORT "8186"
 
 EXPOSE 8186
 CMD ["./server-web-library-base-compositions"]
