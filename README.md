@@ -9,8 +9,8 @@ A quality-assurance tool to sanity check FASTQ compositions and their library ty
 ## Setup:
 
 ```bash
-docker pull desmondwillowbrook/server-web-library-base-compositions
-docker run -dp 8186:8186 desmondwillowbrook/server-web-library-base-compositions
+docker pull desmondwillowbrook/librarian-server
+docker run -dp 8186:8186 desmondwillowbrook/librarian-server
 ```
 
 ## Non-Docker setup
@@ -20,7 +20,7 @@ Install:
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
 
 ```bash
-git clone https://github.com/DesmondWillowbrook/Server_Web_Library_Base_Compositions.git
+git clone https://github.com/DesmondWillowbrook/Librarian-Server.git
 ```
 
 ```bash

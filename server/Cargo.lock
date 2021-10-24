@@ -1203,6 +1203,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7f823d141fe0a24df1e23b4af4e3c7ba9e5966ec514ea068c93024aa7deb765"
 
 [[package]]
+name = "librarian-server"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "base64",
+ "fastq2comp",
+ "futures",
+ "log",
+ "serde",
+ "serde_json",
+ "simple_logger",
+]
+
+[[package]]
 name = "linked-hash-map"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1906,21 +1921,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server-web-library-base-compositions"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-web",
- "base64",
- "fastq2comp",
- "futures",
- "log",
- "serde",
- "serde_json",
- "simple_logger",
 ]
 
 [[package]]

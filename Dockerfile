@@ -95,7 +95,7 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 COPY ./server/src ./src
-RUN ls ./target/release/deps/ && rm ./target/release/deps/server_web_library_base_compositions*
+RUN ls ./target/release/deps/ && rm ./target/release/deps/librarian_server*
 
 RUN cargo build --release
 
@@ -114,10 +114,10 @@ WORKDIR /app
 COPY ./server/data/ ./data
 COPY ./server/scripts ./scripts
 COPY --from=frontend /app/dist/ ./frontend/dist/
-COPY --from=build /app/target/release/server-web-library-base-compositions ./
+COPY --from=build /app/target/release/librarian-server ./
 
 ENV LIBRARIAN_INDEX_PATH "./frontend/dist"
 ENV LIBRARIAN_PORT "8186"
 
 EXPOSE 8186
-CMD ["./server-web-library-base-compositions"]
+CMD ["./librarian-server"]
