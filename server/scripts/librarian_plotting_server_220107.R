@@ -20,7 +20,7 @@ png(file=file.path(args[2], "graph_%d.png"), width = 720, height = 720,)
 ## Loading gathered library compositions
 
 read_tsv("../data/output_search_18_19_20_filtered.tsv") -> output
-read_tsv("../data/test_library_composition_220107.txt", col_names = F) -> test.import
+read_tsv(stdin(), col_names = F) -> test.import
 
 ## header for the handling of the test library
 
