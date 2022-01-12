@@ -15,5 +15,5 @@ cd ..
 cd server
 LIBRARIAN_INDEX_PATH="../frontend/dist/"
 LIBRARIAN_PORT="8186"
-cargo run --release
+cargo run --release &
 cd ..
