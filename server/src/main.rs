@@ -44,7 +44,7 @@ async fn plot_comp(comp: web::Json<BaseComp>) -> impl Responder {
         let mut child = Command::new("Rscript")
             .stdin(Stdio::piped())
             .stdout(Stdio::inherit())
-            .arg("scripts/placeholder_code_for_graph_210726.R")
+            .arg("scripts/librarian_plotting_server_220107.R")
             .arg("--args")
             .arg(&tmpdir)
             .spawn()
