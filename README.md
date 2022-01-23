@@ -38,3 +38,7 @@ cargo run --release
 
 ### Attribution:
 - `favicon.ico` sourced from [favicon.io](https://favicon.io/emoji-favicons/books) sourced from [twemoji](https://twemoji.twitter.com/), licensed under [CC BY-4](https://creativecommons.org/licenses/by/4.0/).
+
+### Associated repositories:
+- [Library Base Compositions](https://github.com/ChristelKrueger/Library_Base_Compositions)
+- [Web Library Base Compositions] https://github.com/DesmondWillowbrook/Web_Library_Base_Compositions
