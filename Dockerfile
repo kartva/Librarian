@@ -114,10 +114,10 @@ WORKDIR /app
 COPY ./server/data/ ./data
 COPY ./server/scripts ./scripts
 COPY --from=frontend /app/dist/ ./frontend/dist/
-COPY --from=build /app/target/release/librarian-server ./
+COPY --from=build /app/target/release/librarian ./
 
 ENV LIBRARIAN_INDEX_PATH "./frontend/dist"
 ENV LIBRARIAN_PORT "8186"
 
 EXPOSE 8186
-CMD ["./librarian-server"]
+CMD ["./librarian"]

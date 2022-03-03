@@ -33,7 +33,7 @@ npm run build # or npm start for interactive dev server
 ```bash
 cd server
 LIBRARIAN_INDEX_PATH="../frontend/dist/"
-cargo run --release
+cargo run --bin server --release
 ```
 
 ### Attribution:

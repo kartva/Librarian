@@ -39,7 +39,7 @@ pub fn plot_comp(comp: BaseComp) -> Result<Vec<Vec<u8>>, PlotError> {
 
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
-        .stdout(Stdio::inherit())
+        .stdout(Stdio::piped())
         .arg("scripts/librarian_plotting_server_220107.R")
         .arg("--args")
         .arg(&tmpdir)

@@ -742,8 +742,8 @@ dependencies = [
 
 [[package]]
 name = "fastq2comp"
-version = "0.2.0"
-source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions#7c3dfc532efea425a3fa7184fd7d54a1cdf65636"
+version = "0.2.1"
+source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions#b750e55cad75d1bbf6083f67c85bf1be93d32722"
 dependencies = [
  "flate2",
  "lazy_static",
@@ -1215,6 +1215,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_logger",
+ "structopt",
  "thiserror",
 ]
 
@@ -2075,9 +2076,9 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "structopt"
-version = "0.3.22"
+version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69b041cdcb67226aca307e6e7be44c8806423d83e018bd662360a93dabce4d71"
+checksum = "0c6b5c64445ba8094a6ab0c3cd2ad323e07171012d9c98b0b15651daf1787a10"
 dependencies = [
  "clap",
  "lazy_static",
@@ -2086,9 +2087,9 @@ dependencies = [
 
 [[package]]
 name = "structopt-derive"
-version = "0.4.15"
+version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7813934aecf5f51a54775e00068c237de98489463968231a51746bbbc03f9c10"
+checksum = "dcb5ae327f9cc13b68763b5749770cb9e048a99bd9dfdfa58d0cf05d5f64afe0"
 dependencies = [
  "heck",
  "proc-macro-error",
