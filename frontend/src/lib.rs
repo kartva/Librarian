@@ -35,6 +35,7 @@ pub mod io_utils {
     #[derive(Debug)]
     pub struct WasmMemBuffer {pos: u64, file: File}
     
+    #[allow(clippy::new_without_default)]
     impl WasmMemBuffer {
         pub fn new() -> WasmMemBuffer {
             WasmMemBuffer {file: File::from(unsafe {get_file()}), pos: 0}
