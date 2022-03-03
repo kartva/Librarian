@@ -36,6 +36,12 @@ LIBRARIAN_INDEX_PATH="../frontend/dist/"
 cargo run --bin server --release
 ```
 
+### Command-line version
+```bash
+cargo run --release --bin plotcomp -- 100000 ../frontend/example_inputs/in.fastq -t 50
+```
+Binary will be present in `server/target/release/plotcomp`.
+
 ### Attribution:
 - `favicon.ico` sourced from [favicon.io](https://favicon.io/emoji-favicons/books) sourced from [twemoji](https://twemoji.twitter.com/), licensed under [CC BY-4](https://creativecommons.org/licenses/by/4.0/).
 
