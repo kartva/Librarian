@@ -38,9 +38,18 @@ cargo run --bin server --release
 
 ### Command-line version
 ```bash
-cargo run --release --bin plotcomp -- 100000 ../frontend/example_inputs/in.fastq -t 50
+cd server
+cargo run --release --bin plotcomp -- 100000 ../frontend/example_inputs/in.fastq
 ```
 Binary will be present in `server/target/release/plotcomp`.
+
+### Batch query cli
+(currently queries from localhost)
+```bash
+cd cli
+cargo run --release -- 100000 ../frontend/example_inputs/in.fastq
+```
+Plots will be produced in the same directory as of input file.
 
 ### Attribution:
 - `favicon.ico` sourced from [favicon.io](https://favicon.io/emoji-favicons/books) sourced from [twemoji](https://twemoji.twitter.com/), licensed under [CC BY-4](https://creativecommons.org/licenses/by/4.0/).
