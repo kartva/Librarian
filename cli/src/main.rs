@@ -29,8 +29,7 @@ async fn main() {
 	simple_logger::init_with_level(log::Level::Warn).unwrap();
 
 	let client = reqwest::Client::builder().timeout(Duration::from_secs(60)).build().unwrap();
-	let mut requests = Vec::new();
-	requests.reserve(args.input.len());
+	let mut requests = Vec::with_capacity(args.input.len());
 
 	println!("{}", "Requests may take up to 60 seconds to process.".green());
 
