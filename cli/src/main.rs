@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
 use std::time::Duration;
+use base64::decode;
 use colored::Colorize;
 use futures::future::join;
 use futures::{stream, StreamExt};
@@ -59,12 +60,13 @@ async fn main() {
 
 	bodies.for_each(|(p, res)| async move {
 		for (i, r) in res.into_iter().enumerate() {
+			let r = decode(r).expect("Server response was malformed.");
+
 			let mut p = p.clone().into_os_string();
 			p.push(i.to_string() + ".png");
 			let p = PathBuf::from(p);
 			let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
-			let mut f = OpenOptions::new().create(true).write(true).open(p).unwrap();
-			f.write_all(r.as_bytes()).unwrap();
+			f.write_all(&r).unwrap();
 			println!("{} {p:?}", "Created ".green());
 		}
 	}).await
