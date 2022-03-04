@@ -1,5 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
+use colored::Colorize;
 use futures::future::join;
 use futures::{stream, StreamExt};
 
@@ -10,7 +11,7 @@ use log::error;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "extract FASTQ base composition", about = "Extracts base composition of FASTQ file and returns result in JSON.")]
+#[structopt(name = "plot FASTQ base composition", about = "Extracts base composition of FASTQ file and plots it.")]
 struct Cli {
     #[structopt(flatten)]
     pub sample_args: SampleArgs,
@@ -23,11 +24,13 @@ struct Cli {
 #[tokio::main]
 async fn main() {
     let args = Cli::from_args();
-	simple_logger::init_with_env().unwrap();
+	simple_logger::init_with_level(log::Level::Warn).unwrap();
 
 	let client = reqwest::Client::new();
 	let mut requests = Vec::new();
 	requests.reserve(args.input.len());
+
+	println!("{}", "Requests may take up to 60 seconds to process.".green());
 
 	for p in args.input {
 		let p = p.canonicalize().unwrap();
@@ -58,8 +61,10 @@ async fn main() {
 			let mut p = p.clone().into_os_string();
 			p.push(i.to_string() + ".png");
 			let p = PathBuf::from(p);
+			let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
 			let mut f = OpenOptions::new().create(true).write(true).open(p).unwrap();
 			f.write_all(r.as_bytes()).unwrap();
+			println!("{} {p:?}", "Created ".green());
 		}
 	}).await
 }
