@@ -1,5 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
+use std::time::Duration;
 use colored::Colorize;
 use futures::future::join;
 use futures::{stream, StreamExt};
@@ -26,7 +27,7 @@ async fn main() {
     let args = Cli::from_args();
 	simple_logger::init_with_level(log::Level::Warn).unwrap();
 
-	let client = reqwest::Client::new();
+	let client = reqwest::Client::builder().timeout(Duration::from_secs(60)).build().unwrap();
 	let mut requests = Vec::new();
 	requests.reserve(args.input.len());
 
