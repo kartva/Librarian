@@ -137,6 +137,7 @@ dependencies = [
  "reqwest",
  "simple_logger",
  "structopt",
+ "time 0.3.7",
  "tokio",
 ]
 

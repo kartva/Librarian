@@ -3,12 +3,15 @@ use std::path::PathBuf;
 use std::time::Duration;
 use base64::decode;
 use colored::Colorize;
-use futures::future::join;
+
 use futures::{stream, StreamExt};
 
 use fastq2comp::extract_comp::{FASTQReader, run, SampleArgs};
 use std::io::{BufReader, Write};
 use log::error;
+
+use time::format_description::well_known::Rfc3339;
+use time::{OffsetDateTime};
 
 use structopt::StructOpt;
 
@@ -19,8 +22,12 @@ struct Cli {
     pub sample_args: SampleArgs,
 
     /// Input files
-    #[structopt(parse(from_os_str), required_unless("stdin"))]
+    #[structopt(parse(from_os_str))]
     pub input: Vec<PathBuf>,
+
+	/// Output path
+	#[structopt(short = "o", long = "output", parse(from_os_str))]
+	pub outdir: Option<PathBuf>
 }
 
 #[tokio::main]
@@ -43,27 +50,31 @@ async fn main() {
 		let f = f.unwrap();
 		let comp = run(FASTQReader::new(args.sample_args, BufReader::new(f)));
 	
-		requests.push((p, client.post("http://127.0.0.1:8186/api/plot_comp").json(&comp).send()));
+		requests.push(client.post("http://127.0.0.1:8186/api/plot_comp").json(&comp).send());
 	}
 
 	let bodies = stream::iter(requests.into_iter())
-		.map(|f| join(futures::future::ok::<PathBuf, ()>(f.0), f.1))
 		.buffer_unordered(3)
-		.filter_map(|(p, req)| {
+		.filter_map(|req| {
 			async {
-				let p = p.unwrap();
 				let res = req.ok()?;
-				Some((p, res.json::<Vec<String>>().await.ok()?))
+				res.json::<Vec<String>>().await.ok()
 			}
 		});
 
-	bodies.for_each(|(p, res)| async move {
+	bodies.for_each(|res| async {
 		for (i, r) in res.into_iter().enumerate() {
 			let r = decode(r).expect("Server response was malformed.");
 
-			let mut p = p.clone().into_os_string();
-			p.push(i.to_string() + ".png");
-			let p = PathBuf::from(p);
+			let d = "plot-".to_string() + &(i.to_string() + "-") + &OffsetDateTime::now_utc().format(&Rfc3339).unwrap() + ".png";
+			let p = match &args.outdir {
+				None => PathBuf::from(d),
+				Some(ref o) => {
+					let mut p = PathBuf::from(o);
+					p.push(d);
+					p
+				}
+			};
 			let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
 			f.write_all(&r).unwrap();
 			println!("{} {p:?}", "Created ".green());

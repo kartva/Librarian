@@ -742,8 +742,8 @@ dependencies = [
 
 [[package]]
 name = "fastq2comp"
-version = "0.2.1"
-source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions#b750e55cad75d1bbf6083f67c85bf1be93d32722"
+version = "0.3.0"
+source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions#ee6fc6d34e33a623e2623e5710a4d48cfac6d649"
 dependencies = [
  "flate2",
  "lazy_static",
@@ -1198,9 +1198,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.99"
+version = "0.2.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7f823d141fe0a24df1e23b4af4e3c7ba9e5966ec514ea068c93024aa7deb765"
+checksum = "1bf2e165bb3457c8e098ea76f3e3bc9db55f87aa90d52d0e6be741470916aaa4"
 
 [[package]]
 name = "librarian-server"
