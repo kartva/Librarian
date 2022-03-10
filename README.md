@@ -36,13 +36,6 @@ LIBRARIAN_INDEX_PATH="../frontend/dist/"
 cargo run --bin server --release
 ```
 
-### Command-line version
-```bash
-cd server
-cargo run --release --bin plotcomp -- 100000 ../frontend/example_inputs/in.fastq
-```
-Binary will be present in `server/target/release/plotcomp`.
-
 ### Batch query cli
 (currently queries from localhost)
 ```bash
