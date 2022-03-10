@@ -31,7 +31,7 @@ enum ServerError {
 */
 
 #[post("/api/plot_comp")]
-async fn plot(comp: web::Json<BaseComp>) -> impl Responder {
+async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
     match web::block(move || plot_comp(comp.into_inner())).await {
         Ok(o) => {
             let out_arr = o.into_iter().map(|f| Value::String(base64::encode_config(&f, STANDARD))).collect();

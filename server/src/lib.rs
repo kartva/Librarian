@@ -15,13 +15,22 @@ pub enum PlotError {
 	DirErr(#[from] std::io::Error)
 }
 
-pub fn plot_comp(comp: BaseComp) -> Result<Vec<Vec<u8>>, PlotError> {
-    let mut input = comp
-        .lib
-        .into_iter()
-        .flat_map(|b| b.bases.iter())
-        .fold(String::new(), |acc, curr| acc + &curr.to_string() + "\t");
-    input.pop(); // remove trailing ',' to make it valid tsv
+pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
+    assert!(!comp.is_empty());
+
+    let mut input = String::new();
+
+    for (i, c) in comp.into_iter().enumerate() {
+        input += &format!("sample_{}\t", i);
+        c
+            .lib
+            .into_iter()
+            .flat_map(|b| b.bases.iter())
+            .for_each(|curr| input.push_str(&(curr.to_string() + "\t")));
+        input.pop(); // remove trailing '\t' to make it valid tsv
+        input.push('\n');
+    }
+    debug!("Input: {:?}", &input);
 
     let tmpdir = String::from_utf8_lossy(
         &Command::new("mktemp")
@@ -40,7 +49,7 @@ pub fn plot_comp(comp: BaseComp) -> Result<Vec<Vec<u8>>, PlotError> {
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .arg("scripts/librarian_plotting_server_220107.R")
+        .arg("scripts/librarian_plotting_multi_server_220304.R")
         .arg("--args")
         .arg(&tmpdir)
         .spawn()

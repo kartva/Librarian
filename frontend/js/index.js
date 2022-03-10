@@ -1,8 +1,8 @@
 import Worker from "worker-loader!./worker.js";
 
 const wasm = import("../pkg/index").then((wasm) => {
-	function processFile (file) {
-		console.info(file);
+	function processFile (files) {
+		console.info(files);
 
 		const wasmProcess = new Worker();
 
@@ -20,13 +20,13 @@ const wasm = import("../pkg/index").then((wasm) => {
 				status.innerText = "Error encountered while processing. Press F12 for more info.";
 				throw new Error("Script panic'ed.");
 			} else {
-				async function fetch_plot (output) {
+				async function fetch_plot (compositions) {
 					// Download and display graph
 					let data = await fetch ('/api/plot_comp', {
 						headers:{
 							"content-type":"application/json"
 						},
-						body:JSON.stringify(output),
+						body:JSON.stringify(compositions),
 						method:"POST"
 					});
 					if (data.ok) {
@@ -54,16 +54,12 @@ const wasm = import("../pkg/index").then((wasm) => {
 			}
 		}
 
-		wasmProcess.postMessage (file);
+		wasmProcess.postMessage (files);
 	}
 	
 	function run() {
 		const fileSelector = document.getElementById('file-selector');
-	
-		for ( var i = 0; i < fileSelector.files.length; i++) {
-			let file = fileSelector.files[i];
-			processFile (file);
-		}
+		processFile (fileSelector.files);
 	}
 	
 	document.getElementById('file-selector').onchange = run;
