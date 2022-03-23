@@ -6,7 +6,7 @@ use colored::Colorize;
 
 use fastq2comp::extract_comp::{FASTQReader, run, SampleArgs};
 use std::io::{BufReader, Write};
-use log::{error, warn};
+use log::{error, info};
 
 use time::format_description::parse;
 use time::{OffsetDateTime};
@@ -63,7 +63,7 @@ async fn main() {
 		let d =
 			name.to_string() +
 			"-" + &OffsetDateTime::now_local()
-				.unwrap_or_else(|_| {warn!("Couldn't get local time."); OffsetDateTime::now_utc()})
+				.unwrap_or_else(|_| {info!("Couldn't get local time. Using UTC time instead."); OffsetDateTime::now_utc()})
 				.format(&parse("[ year ]-[ month ]-[ day ]-[ hour ]-[ minute ]").unwrap())
 				.unwrap()
 			+ ".png";
