@@ -4,13 +4,11 @@ use std::time::Duration;
 use base64::decode;
 use colored::Colorize;
 
-use futures::{stream, StreamExt};
-
 use fastq2comp::extract_comp::{FASTQReader, run, SampleArgs};
 use std::io::{BufReader, Write};
-use log::error;
+use log::{error, warn};
 
-use time::format_description::well_known::Rfc3339;
+use time::format_description::parse;
 use time::{OffsetDateTime};
 
 use structopt::StructOpt;
@@ -36,7 +34,7 @@ async fn main() {
 	simple_logger::init_with_level(log::Level::Warn).unwrap();
 
 	let client = reqwest::Client::builder().timeout(Duration::from_secs(60)).build().unwrap();
-	let mut requests = Vec::with_capacity(args.input.len());
+	let mut comps = Vec::with_capacity(args.input.len());
 
 	println!("{}", "Requests may take up to 60 seconds to process.".green());
 
@@ -49,35 +47,37 @@ async fn main() {
 		}
 		let f = f.unwrap();
 		let comp = run(FASTQReader::new(args.sample_args, BufReader::new(f)));
-	
-		requests.push(client.post("http://127.0.0.1:8186/api/plot_comp").json(&comp).send());
+		comps.push(comp);
 	}
+	let req = client.post("http://127.0.0.1:8186/api/plot_comp").json(&comps).send().await;
 
-	let bodies = stream::iter(requests.into_iter())
-		.buffer_unordered(3)
-		.filter_map(|req| {
-			async {
-				let res = req.ok()?;
-				res.json::<Vec<String>>().await.ok()
+	let res = req.map_err(|e| error!("{:?}", e)).ok().unwrap();
+	let res = res.json::<Vec<String>>().await.map_err(|e| error!("{:?}", e)).unwrap();
+
+	let plot_names = ["tile_probability_map", "tile_probability_barchart", "reference_map"];
+	assert_eq!(res.len(), plot_names.len());
+
+	for (res, name) in res.into_iter().zip(plot_names) {
+		let r = decode(res).expect("Server response was malformed.");
+
+		let d =
+			name.to_string() +
+			"-" + &OffsetDateTime::now_local()
+				.unwrap_or_else(|_| {warn!("Couldn't get local time."); OffsetDateTime::now_utc()})
+				.format(&parse("[ year ]-[ month ]-[ day ]-[ hour ]-[ minute ]").unwrap())
+				.unwrap()
+			+ ".png";
+
+		let p = match &args.outdir {
+			None => PathBuf::from(d),
+			Some(ref o) => {
+				let mut p = PathBuf::from(o);
+				p.push(d);
+				p
 			}
-		});
-
-	bodies.for_each(|res| async {
-		for (i, r) in res.into_iter().enumerate() {
-			let r = decode(r).expect("Server response was malformed.");
-
-			let d = "plot-".to_string() + &(i.to_string() + "-") + &OffsetDateTime::now_utc().format(&Rfc3339).unwrap() + ".png";
-			let p = match &args.outdir {
-				None => PathBuf::from(d),
-				Some(ref o) => {
-					let mut p = PathBuf::from(o);
-					p.push(d);
-					p
-				}
-			};
-			let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
-			f.write_all(&r).unwrap();
-			println!("{} {p:?}", "Created ".green());
-		}
-	}).await
+		};
+		let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
+		f.write_all(&r).unwrap();
+		println!("{} {p:?}", "Created ".green());
+	};
 }
