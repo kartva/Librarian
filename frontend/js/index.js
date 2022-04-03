@@ -17,8 +17,7 @@ const wasm = import("../pkg/index").then((wasm) => {
 			let result = e.data;
 
 			if (result.err) {
-				status.innerText = "Error encountered while processing. Press F12 for more info.";
-				throw new Error("Script panic'ed.");
+				status.innerText = `Error encountered while processing file ${result.err}. Open DevTools (press F12) for more info.`;
 			} else {
 				async function fetch_plot (compositions) {
 					// Download and display graph

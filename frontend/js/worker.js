@@ -7,6 +7,7 @@ onmessage = async function(e) {
 	let files = e.data;
 	console.debug(files);
 
+	let result = [];
 	for (let file of files) {
 		// for communication with exported function 'get_file'
 		self.readFile = file;
@@ -20,14 +21,14 @@ onmessage = async function(e) {
 			50
 		);
 
-		let result = {out: []};
 		try {
-			result.out.push(JSON.parse(wasm.run_json_exported(args, "application/x-gzip" == file.type)));
+			result.push(JSON.parse(wasm.run_json_exported(args, "application/x-gzip" == file.type)));
 		} catch (e) {
-			result.err = "Process panic'ed";
-			break;
+			console.error(e);
+			postMessage({err: file.name});
+			return;
 		}
 	}
 
-	postMessage(result);
+	postMessage({out: result});
 }
