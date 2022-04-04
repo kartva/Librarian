@@ -18,6 +18,11 @@ Install:
 - [`npm`](https://www.npmjs.com/get-npm)
 - [`Rust (with Cargo)`](https://www.rust-lang.org/) 
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
+- R
+```
+apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+Rscript -e 'install.packages(c("tidyverse", "umap")) '
+```
 
 ```bash
 git clone https://github.com/DesmondWillowbrook/Librarian-Server.git
