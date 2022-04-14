@@ -59,13 +59,14 @@ async fn main() -> std::io::Result<()> {
             .service(plot)
             .service(
                 Files::new(
+                    "/example_inputs",
+                    "../frontend/example_inputs".to_string()
+                )
+            )
+            .service(
+                Files::new(
                     "/",
-                    env::var("LIBRARIAN_INDEX_PATH").ok().unwrap_or_else(|| {
-                        warn!(
-                            "LIBRARIAN_INDEX_PATH not found, using default path (../frontend/dist)"
-                        );
-                        "../frontend/dist".to_string()
-                    }),
+                    "../frontend/dist".to_string()
                 )
                 .index_file("index.html"),
             )

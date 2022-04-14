@@ -121,7 +121,7 @@ const wasm = import("../pkg/index").then((wasm) => {
         let files = ['in.fastq', 'in.fastq.gz']; //files to downloads
         for(let i = 0; i < files.length; i++){
             let filename = 'LibrarianServer_'.concat(files[i]);
-            fetch(files[i]).then(function(t) {
+            fetch("example_inputs/".concat(files[i])).then(function(t) {
                 return t.blob().then((b)=>{
                     let a = document.createElement("a");
                     a.href = URL.createObjectURL(b);
