@@ -1,3 +1,4 @@
+# Build thw frontend - since this needs both Rust and NPM, can't easily pull one image and use that.
 # Skip to line 76 for actual setup, this is setting up both Rust and NPM.
 
 FROM buildpack-deps:buster as frontend
@@ -73,6 +74,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && node --version \
   && npm --version
 
+
 WORKDIR /app
 COPY ./frontend/ ./
 RUN cargo install wasm-pack
@@ -84,10 +86,11 @@ RUN npm run build
 # https://www.lpalmieri.com/posts/fast-rust-docker-builds/
 # https://dev.to/rogertorres/first-steps-with-docker-rust-30oi
 
-# Build Rust binaries
+# Build server
 FROM rust AS build
 WORKDIR /app
 
+# Avoids needing to rebuild all dependencies in case of code changes in src/
 RUN cargo init --bin
 COPY ./server/Cargo.toml ./Cargo.toml
 COPY ./server/Cargo.lock ./Cargo.lock
@@ -95,29 +98,32 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 COPY ./server/src ./src
-RUN ls ./target/release/deps/ && rm ./target/release/deps/librarian_server*
-
 RUN cargo build --release
 
-FROM debian:buster
+# Final image
+
+FROM debian:stable
+
+# Install R
 # Refer to: https://cran.r-project.org/bin/linux/debian/#installation
-# for the R installation process
 RUN apt-get update \
 	&& apt-get install -y gnupg \
 	&& echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran35/' >> /etc/apt/sources.list \
-	&& apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF' \
+	&& apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' \
     && apt-get update \
 	&& apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
 	&& Rscript -e ' install.packages(c("tidyverse", "umap")) ' \
 	&& rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY ./server/data/ ./data
 COPY ./server/scripts ./scripts
 COPY --from=frontend /app/dist/ ./frontend/dist/
-COPY --from=build /app/target/release/librarian ./
+COPY --from=build /app/target/release/server ./
 
+ENV LIBRARIAN_INDEX_PATH "./frontend/dist"
 ENV LIBRARIAN_INDEX_PATH "./frontend/dist"
 ENV LIBRARIAN_PORT "8186"
 
 EXPOSE 8186
-CMD ["./librarian"]
+CMD ["./server"]
