@@ -14,7 +14,7 @@ use log::{self, warn};
 use serde_json::Value;
 use simple_logger::SimpleLogger;
 use std::{
-    env,
+    env, path::PathBuf, str::FromStr, fmt::Debug
 };
 
 use librarian_server::plot_comp;
@@ -44,6 +44,20 @@ async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
     }
 }
 
+fn get_env_or_default<K, S> (key: K, default: S) -> S
+where
+    K: AsRef<std::ffi::OsStr> + Debug,
+    S: FromStr + Debug
+{
+    env::var(&key)
+            .ok()
+            .and_then(|val| val.parse().ok())
+            .unwrap_or_else(|| {
+                warn!("{:?} not found, using default value {default:?}", &key);
+                default
+            })
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
@@ -54,32 +68,27 @@ async fn main() -> std::io::Result<()> {
             .init()
             .unwrap();
 
+        let frontend_index: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
+        let example_input: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
+
         App::new()
             .wrap(middleware::Logger::default())
             .service(plot)
             .service(
                 Files::new(
                     "/example_inputs",
-                    "../frontend/example_inputs".to_string()
+                    example_input
                 )
             )
             .service(
                 Files::new(
                     "/",
-                    "../frontend/dist".to_string()
+                    frontend_index
                 )
                 .index_file("index.html"),
             )
     })
-    .bind(("0.0.0.0", {
-        env::var("LIBRARIAN_PORT")
-            .ok()
-            .and_then(|port| port.parse().ok())
-            .unwrap_or_else(|| {
-                warn!("LIBRARIAN_PORT not found, using default port 8186.");
-                8186
-            })
-    }))?
+    .bind(("0.0.0.0", get_env_or_default("LIBRARIAN_PORT", 8186)))?
     .run()
     .await
 }
