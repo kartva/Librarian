@@ -50,7 +50,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         SimpleLogger::new()
-            .with_level(log::LevelFilter::Trace)
+            .with_level(log::LevelFilter::Info)
             .init()
             .unwrap();
 

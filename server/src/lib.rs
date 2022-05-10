@@ -30,7 +30,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
         input.pop(); // remove trailing '\t' to make it valid tsv
         input.push('\n');
     }
-    debug!("Input: {:?}", &input);
+    trace!("Input: {:?}", &input);
 
     let tmpdir = String::from_utf8_lossy(
         &Command::new("mktemp")
