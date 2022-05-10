@@ -9,7 +9,7 @@ A quality-assurance tool to sanity check FASTQ compositions and their library ty
 ## Setup:
 
 ```bash
-docker pull desmondwillowbrook/librarian-server
+docker pull docker.io/desmondwillowbrook/librarian-server
 docker run -dp 8186:8186 desmondwillowbrook/librarian-server
 ```
 
