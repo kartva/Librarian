@@ -14,18 +14,18 @@ use time::{OffsetDateTime};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "plot FASTQ base composition", about = "Extracts base composition of FASTQ file and plots it.")]
+#[structopt(
+	name = "Librarian CLI",
+	about = "Utility CLI to query the Librarian server for plotting base compositions."
+)]
 struct Cli {
-    #[structopt(flatten)]
-    pub sample_args: SampleArgs,
-
-    /// Input files
-    #[structopt(parse(from_os_str))]
+    /// List of input files
+    #[structopt(required = true, parse(from_os_str))]
     pub input: Vec<PathBuf>,
 
 	/// Output path
 	#[structopt(short = "o", long = "output", parse(from_os_str))]
-	pub outdir: Option<PathBuf>
+	pub outdir: Option<PathBuf>,
 }
 
 #[tokio::main]
@@ -46,13 +46,13 @@ async fn main() {
 			continue;
 		}
 		let f = f.unwrap();
-		let comp = run(FASTQReader::new(args.sample_args, BufReader::new(f)));
+		let comp = run(FASTQReader::new(SampleArgs::default(), BufReader::new(f)));
 		comps.push(comp);
 	}
-	let req = client.post("http://127.0.0.1:8186/api/plot_comp").json(&comps).send().await;
+	let req = client.post("http://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp").json(&comps).send().await;
 
 	let res = req.map_err(|e| error!("{:?}", e)).ok().unwrap();
-	let res = res.json::<Vec<String>>().await.map_err(|e| error!("{:?}", e)).unwrap();
+	let res = res.json::<Vec<String>>().await.unwrap();
 
 	let plot_names = ["tile_probability_map", "tile_probability_barchart", "reference_map"];
 	assert_eq!(res.len(), plot_names.len());
