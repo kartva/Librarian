@@ -51,8 +51,8 @@ async fn main() {
 	}
 	let req = client.post("http://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp").json(&comps).send().await;
 
-	let res = req.map_err(|e| error!("{:?}", e)).ok().unwrap();
-	let res = res.json::<Vec<String>>().await.unwrap();
+	let res = req.expect("Request to server failed.");
+	let res = res.json::<Vec<String>>().await.expect("Unable to extract JSON from server response. Server may be down.");
 
 	let plot_names = ["tile_probability_map", "tile_probability_barchart", "reference_map"];
 	assert_eq!(res.len(), plot_names.len());
