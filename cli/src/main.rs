@@ -42,7 +42,7 @@ async fn main() {
 		let p = p.canonicalize().unwrap();
 		let f = File::open(&p);
 		if let Err(e) = f {
-			error!("Couldn't open {p:?} for reading due to error {e}");
+			error!("Couldn't open {:?} for reading due to error {}", p, e);
 			continue;
 		}
 		let f = f.unwrap();
@@ -78,6 +78,6 @@ async fn main() {
 		};
 		let mut f = OpenOptions::new().create(true).write(true).open(&p).unwrap();
 		f.write_all(&r).unwrap();
-		println!("{} {p:?}", "Created ".green());
+		println!("{} {:?}", "Created ".green(), p);
 	};
 }

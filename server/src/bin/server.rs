@@ -53,7 +53,7 @@ where
             .ok()
             .and_then(|val| val.parse().ok())
             .unwrap_or_else(|| {
-                warn!("{:?} not found, using default value {default:?}", &key);
+                warn!("{:?} not found, using default value {:?}", &key, default);
                 default
             })
 }
