@@ -1,6 +1,4 @@
-# Library Base Compositions (Web Ver)
-
-[Command line version also available.](https://github.com/ChristelKrueger/Library_Base_Compositions)
+# Librarian Frontend
 
 ## Quickstart
 <small><a href="https://rustwasm.github.io/docs/wasm-pack/tutorials/hybrid-applications-with-webpack/using-your-library.html">Reference</a></small>
