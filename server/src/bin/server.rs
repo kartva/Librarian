@@ -76,13 +76,13 @@ async fn main() -> std::io::Result<()> {
             .service(plot)
             .service(
                 Files::new(
-                    "/example_inputs",
+                    "/librarian/example_inputs",
                     example_input
                 )
             )
             .service(
                 Files::new(
-                    "/",
+                    "/librarian",
                     frontend_index
                 )
                 .index_file("index.html"),
