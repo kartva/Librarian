@@ -8,12 +8,11 @@ npm --version && \
 
 cd frontend
 npm install
-wasm-pack build
 npm run build
 cd ..
 
 cd server
 LIBRARIAN_INDEX_PATH="../frontend/dist/"
 LIBRARIAN_PORT="8186"
-cargo run --bin server --release &
+cargo run --bin server --release
 cd ..
