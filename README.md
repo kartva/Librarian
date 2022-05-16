@@ -42,11 +42,18 @@ cargo run --bin server --release
 ```
 
 ### Batch query cli
-(currently queries from localhost)
+
+##### Install
+```bash
+cargo install --git "https://github.com/DesmondWillowbrook/Server_Web_Library_Base_Compositions/" cli
+```
+
+##### Build from source
 ```bash
 cd cli
 cargo run --release -- ../frontend/example_inputs/in.fastq
 ```
+
 Plots will be produced in the same directory as of input file.
 
 ### Attribution:
