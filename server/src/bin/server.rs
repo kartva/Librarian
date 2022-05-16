@@ -82,7 +82,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 Files::new(
-                    "/librarian",
+                    "/",
                     frontend_index
                 )
                 .index_file("index.html"),
