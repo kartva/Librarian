@@ -45,7 +45,7 @@ cargo run --bin server --release
 (currently queries from localhost)
 ```bash
 cd cli
-cargo run --release -- 100000 ../frontend/example_inputs/in.fastq
+cargo run --release -- ../frontend/example_inputs/in.fastq
 ```
 Plots will be produced in the same directory as of input file.
 
