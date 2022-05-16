@@ -14,15 +14,8 @@ onmessage = async function(e) {
 		console.debug('Processing file: ');
 		console.debug(file);
 
-		const args = new wasm.SampleArgs (
-			BigInt (100000),
-			0,
-			null,
-			50
-		);
-
 		try {
-			result.push(JSON.parse(wasm.run_json_exported(args, "application/x-gzip" == file.type)));
+			result.push(JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type)));
 		} catch (e) {
 			console.error(e);
 			postMessage({err: file.name});
