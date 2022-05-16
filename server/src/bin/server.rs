@@ -76,7 +76,7 @@ async fn main() -> std::io::Result<()> {
             .service(plot)
             .service(
                 Files::new(
-                    "/librarian/example_inputs",
+                    "/example_inputs",
                     example_input
                 )
             )
