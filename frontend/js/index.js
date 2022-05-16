@@ -21,7 +21,7 @@ const wasm = import("../pkg/index").then((wasm) => {
             } else {
                 async function fetch_plot (compositions) {
                     //download and display plots
-                    let data = await fetch ('/api/plot_comp', {
+                    let data = await fetch ('api/plot_comp', {
                         headers:{
                             "content-type":"application/json"
                         },
