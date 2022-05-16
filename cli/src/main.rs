@@ -49,7 +49,7 @@ async fn main() {
 		let comp = run(FASTQReader::new(SampleArgs::default(), BufReader::new(f)));
 		comps.push(comp);
 	}
-	let req = client.post("http://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp").json(&comps).send().await;
+	let req = client.post("https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp").json(&comps).send().await;
 
 	let res = req.expect("Request to server failed.");
 	let res = res.json::<Vec<String>>().await.expect("Unable to extract JSON from server response. Server may be down.");
