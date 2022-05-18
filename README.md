@@ -23,6 +23,7 @@ Install:
 - [`Rust (with Cargo)`](https://www.rust-lang.org/) 
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
 - R
+
 ```
 apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
 Rscript -e 'install.packages(c("tidyverse", "umap")) '
@@ -30,19 +31,11 @@ Rscript -e 'install.packages(c("tidyverse", "umap")) '
 
 ```bash
 git clone https://github.com/DesmondWillowbrook/Librarian-Server.git
+cd Librarian-Server
 ```
 
 ```bash
-cd frontend
-npm install
-wasm-pack build
-npm run build # or npm start for interactive dev server
-```
-
-```bash
-cd server
-LIBRARIAN_INDEX_PATH="../frontend/dist/"
-cargo run --bin server --release
+./run.sh
 ```
 
 ## Batch query cli
@@ -69,5 +62,5 @@ Plots will be produced in the same directory as of input file.
 - `favicon.ico` sourced from [favicon.io](https://favicon.io/emoji-favicons/books) sourced from [twemoji](https://twemoji.twitter.com/), licensed under [CC BY-4](https://creativecommons.org/licenses/by/4.0/).
 
 ### Associated repositories:
-- [Library Base Compositions](https://github.com/ChristelKrueger/Library_Base_Compositions) - contains the core library for extract base compositions from FASTQ files.
+- [Library Base Compositions](https://github.com/ChristelKrueger/Library_Base_Compositions) - contains the core library for extracting base compositions from FASTQ files.
 - [Web Library Base Compositions](https://github.com/DesmondWillowbrook/Web_Library_Base_Compositions)
