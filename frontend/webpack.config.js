@@ -12,7 +12,6 @@ module.exports = {
   output: {
     path: dist,
     filename: "[name].js",
-    publicPath: "/librarian/",
   },
   devServer: {
     open: true,
