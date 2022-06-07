@@ -25,8 +25,8 @@ Install:
 - R
 
 ```
-apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev libcairo2-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libharfbuzz-dev libfribidi-dev libfontconfig1-dev 
-Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr")) '
+apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+Rscript -e 'install.packages(c("tidyverse", "umap")) '
 ```
 
 ```bash

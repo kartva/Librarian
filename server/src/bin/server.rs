@@ -8,7 +8,7 @@ use actix_files::Files;
 use actix_web::{
     error::BlockingError, middleware, post, web, App, HttpResponse, HttpServer, Responder,
 };
-
+use base64::{self, STANDARD};
 use fastq2comp::BaseComp;
 use log::{self, warn};
 use serde_json::Value;
@@ -34,7 +34,7 @@ enum ServerError {
 async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
     match web::block(move || plot_comp(comp.into_inner())).await {
         Ok(o) => {
-            let out_arr = o.into_iter().map(Value::String).collect();
+            let out_arr = o.into_iter().map(|f| Value::String(base64::encode_config(&f, STANDARD))).collect();
             HttpResponse::Ok().content_type("application/json").body(Value::Array(out_arr))
         },
         Err(blocking_e) => match blocking_e {
@@ -64,7 +64,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         SimpleLogger::new()
-            .with_level(log::LevelFilter::Trace)
+            .with_level(log::LevelFilter::Info)
             .init()
             .unwrap();
 

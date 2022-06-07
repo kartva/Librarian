@@ -15,7 +15,7 @@ pub enum PlotError {
 	DirErr(#[from] std::io::Error)
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<String>, PlotError> {
+pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
     assert!(!comp.is_empty());
 
     let mut input = String::new();
@@ -49,7 +49,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<String>, PlotError> {
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .arg("scripts/librarian_plotting_multi_server_220606.R")
+        .arg("scripts/librarian_plotting_multi_server_220304.R")
         .arg("--args")
         .arg(&tmpdir)
         .spawn()
@@ -87,8 +87,8 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<String>, PlotError> {
 				warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
 				return None;
 			};
-            let mut buf = String::new();
-			if let Err(err) = f.unwrap().read_to_string(&mut buf) {
+            let mut buf = Vec::new();
+			if let Err(err) = f.unwrap().read_to_end(&mut buf) {
 				warn!("Error reading file {:?} due to error {:?}", e.path(), err);
 				return None;
 			}
