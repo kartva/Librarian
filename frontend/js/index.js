@@ -38,7 +38,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         let graphs = await data.json();
                         
                         for (const graph of graphs) {
-                            let link = 'data:image/png;base64,' + graph;
+                            let link = 'data:image/svg+xml;base64,' + graph;
                             let img = document.createElement('img');
                             img.src = link;
                             img.classList.add('img-fluid','w-60', 'p-3');
