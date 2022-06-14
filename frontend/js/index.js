@@ -38,10 +38,12 @@ const wasm = import("../pkg/index").then((wasm) => {
                         let graphs = await data.json();
                         
                         for (const graph of graphs) {
-                            let link = 'data:image/svg+xml;base64,' + graph;
+                            const [filename, data] = Object.entries(graph)[0];
+                            let link = 'data:image/svg+xml;base64,' + data;
                             let img = document.createElement('img');
                             img.src = link;
-                            img.classList.add('img-fluid','w-60', 'p-3');
+                            img.id = filename; //set id as filename
+                            img.classList.add('img-fluid','w-60', 'p-3', 'plot');
 
                             let div = document.createElement('div');
                             div.classList.add('col-md-6');
@@ -135,13 +137,12 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Download output plots
     function download_plots() {
-        let img = document.getElementsByTagName('img');
-        let filename = document.getElementById('file-selector').files[0]['name'].split('.fastq')[0];
+        let imgs = document.getElementsByClassName('plot');
  
-        for(let i = 0; i < img.length; i++){
+        for (let img of imgs){
             let link = document.createElement('a');
-            link.href = img[i].src;
-            link.download = 'LibrarianServer_'.concat(filename, '_plot_', i+1);
+            link.href = img.src;
+            link.download = img.id; //set filename as id
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

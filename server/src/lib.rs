@@ -9,19 +9,30 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum PlotError {
-    #[error("RScript exited unsuccessfully")]
+    #[error("RScript exited unsuccessfully: {0}")]
     RExit(String),
 	#[error("Error opening directory")]
 	DirErr(#[from] std::io::Error)
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
+use serde::{Serialize, Deserialize};
+/// Describes a plot; which has a filename and data.
+#[derive(Serialize, Deserialize)]
+pub struct Plot {
+    /// Raw plot data - in svg
+    pub plot: Vec<u8>,
+    pub filename: String,
+}
+
+impl actix_web::error::ResponseError for PlotError {}
+
+pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     assert!(!comp.is_empty());
 
     let mut input = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
-        input += &format!("sample_{}\t", i);
+        input += &format!("sample_{:02}\t", i + 1);
         c
             .lib
             .into_iter()
@@ -44,12 +55,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
     .next()
     .unwrap()
     .to_owned();
+
 	debug!("Tempdir: {:?}", tmpdir);
 
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .arg("scripts/librarian_plotting_multi_server_220304.R")
+        .arg("scripts/librarian_plotting_multi_server_220606.R")
         .arg("--args")
         .arg(&tmpdir)
         .spawn()
@@ -74,6 +86,8 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
         ));
     };
 
+    debug!("Child executed successfuly.");
+
     let out_arr = read_dir(&tmpdir)?
         .filter_map(|e| {
 			if e.is_err() {
@@ -82,6 +96,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
 			e.ok()
 		})
         .filter_map(|e| {
+            let filename = e.file_name().to_string_lossy().to_owned().to_string();
             let f = File::open(e.path());
 			if f.is_err() {
 				warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
@@ -92,7 +107,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Vec<u8>>, PlotError> {
 				warn!("Error reading file {:?} due to error {:?}", e.path(), err);
 				return None;
 			}
-			Some(buf)
+			Some(Plot {plot: buf, filename})
         })
         .collect::<Vec<_>>();
 

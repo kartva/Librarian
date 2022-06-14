@@ -11,7 +11,7 @@ use actix_web::{
 use base64::{self, STANDARD};
 use fastq2comp::BaseComp;
 use log::{self, warn};
-use serde_json::Value;
+use serde_json::{Value, json};
 use simple_logger::SimpleLogger;
 use std::{
     env, path::PathBuf, str::FromStr, fmt::Debug
@@ -34,7 +34,13 @@ enum ServerError {
 async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
     match web::block(move || plot_comp(comp.into_inner())).await {
         Ok(o) => {
-            let out_arr = o.into_iter().map(|f| Value::String(base64::encode_config(&f, STANDARD))).collect();
+            let out_arr = o.into_iter().map(|p| {
+                    let key = p.filename;
+                    let val = base64::encode_config(p.plot, STANDARD);
+                    json!({key: val})
+                }
+            ).collect();
+
             HttpResponse::Ok().content_type("application/json").body(Value::Array(out_arr))
         },
         Err(blocking_e) => match blocking_e {
