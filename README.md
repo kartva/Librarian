@@ -48,7 +48,7 @@ cargo install --git "https://github.com/DesmondWillowbrook/Server_Web_Library_Ba
 ##### Build from source
 ```bash
 cd cli
-cargo run --release -- ../frontend/example_inputs/in.fastq
+cargo run --release -- ../frontend/example_inputs/*
 ```
 
 Plots will be produced in the same directory as of input file.
