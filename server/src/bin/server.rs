@@ -19,17 +19,6 @@ use std::{
 
 use librarian_server::plot_comp;
 
-// Look into https://actix.rs/docs/errors/ to improve error handling
-/*
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-enum ServerError {
-    #[error("R script gave a non-zero response. Output:\n`{0}`")]
-    RScriptError(String),
-}
-*/
-
 #[post("/api/plot_comp")]
 async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
     match web::block(move || plot_comp(comp.into_inner())).await {
@@ -69,8 +58,9 @@ async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
     HttpServer::new(|| {
-        SimpleLogger::new()
+        SimpleLogger::new().with_utc_timestamps().with_colors(true)
             .with_level(log::LevelFilter::Info)
+            .env()
             .init()
             .unwrap();
 
