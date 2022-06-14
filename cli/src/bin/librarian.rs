@@ -54,7 +54,7 @@ async fn main() {
 	let res = req.expect("Request to server failed.");
 	let res = res.json::<Vec<String>>().await.expect("Unable to extract JSON from server response. Server may be down.");
 
-	let plot_names = ["tile_probability_map", "tile_probability_barchart", "reference_map"];
+	let plot_names = ["tile-probability-map", "tile-probability-barchart", "reference-map"];
 	assert_eq!(res.len(), plot_names.len());
 
 	for (res, name) in res.into_iter().zip(plot_names) {
