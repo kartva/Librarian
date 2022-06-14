@@ -27,7 +27,7 @@ pub mod io_utils {
         #[wasm_bindgen(js_namespace = console)]
         pub fn debug(msg: &str);
     }
-    use std::io::{self, BufRead, BufReader, Read};
+    use std::io::{self, BufRead, Read};
 
 
     // Credit to: mstange on GitHub
@@ -56,14 +56,9 @@ pub mod io_utils {
         }
     }
 
-    use flate2::read::GzDecoder;
     // Reader is a wrapper over BufRead
     // And provides an interface over the actual reading.
     pub fn get_reader(compressed: bool) -> Box<dyn BufRead> {
-        Box::new(BufReader::new(    
-            if compressed {
-                Box::new(GzDecoder::new(WasmMemBuffer::new()))
-            } else {Box::new(WasmMemBuffer::new()) as Box<dyn Read>}
-        ))
+        fastq2comp::io_utils::compressed_reader(Box::new(WasmMemBuffer::new()) as Box<dyn Read>, compressed)
     }
 }
