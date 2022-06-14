@@ -120,7 +120,7 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Download input files
     function download_files() {
-        let files = ['in.fastq', 'in.fastq.gz']; //files to downloads
+        let files = ['RNA.example.fastq.gz', 'RRBS.example.fastq.gz', 'WGBS.example.fastq.gz']; //files to downloads
         for(let i = 0; i < files.length; i++){
             let filename = 'LibrarianServer_'.concat(files[i]);
             fetch("example_inputs/".concat(files[i])).then(function(t) {
