@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+    "cli",
+	"frontend",
+	"server"
+]
+
+[profile.release.package.librarian-frontend]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
