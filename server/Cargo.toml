@@ -7,13 +7,13 @@ edition = "2018"
 
 [dependencies]
 actix-web = "3.3.2"
-serde = "1.0.126"
-serde_json = "1.0.64"
-fastq2comp = { git = "https://github.com/ChristelKrueger/Library_Base_Compositions", tag = "v0.4.0" }
-futures = "0.3.16"
-log = "0.4.14"
-simple_logger = "1.13.0"
-actix-files = "0.5.0"
-base64 = "0.13.0"
-thiserror = "1.0.30"
-structopt = "0.3.26"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+fastq2comp = { git = "https://github.com/ChristelKrueger/Library_Base_Compositions", tag = "v0.5.0" }
+futures = "0.3"
+log = "0.4"
+simple_logger = "1.13"
+actix-files = "0.5"
+base64 = "0.13"
+thiserror = "1.0"
+structopt = "0.3"
