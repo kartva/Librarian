@@ -22,7 +22,7 @@ args = commandArgs(trailingOnly=TRUE)
 ## Loading gathered library compositions
 
 read_tsv("data/output_search_18_19_20_filtered.tsv") -> output
-read_tsv(file("stdin")) -> test.import
+read_tsv(file("stdin"), col_names = FALSE) -> test.import
 
 #read_tsv("../data/output_search_18_19_20_filtered.tsv") -> output
 #read_tsv("../data/test_library_composition_10_220304.txt", col_names = F) -> test.import
