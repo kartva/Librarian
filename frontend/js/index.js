@@ -58,7 +58,19 @@ const wasm = import("../pkg/index").then((wasm) => {
                         throw data;
                     }
                 }
-               
+                
+                let smaller_reads = result.out.map((e, i) => {e.idx = i + 1; return e;}).filter(e => e.reads_read < 100000);
+                console.debug(smaller_reads);
+
+                if (smaller_reads.length != 0) {
+                    status.innerText = `Fewer valid reads (${smaller_reads.map(e => ` ${e.reads_read} in sample ${e.idx}`)}) than recommended (100000)
+                    (this may be due to reads being filtered out due to being shorter than 50 bases)`;
+                    status.classList.add('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show');
+                    loading(false); //remove loading part
+
+                    throw new Error("Reads too short");
+                }
+
                 fetch_plot(result.out);
             }
         }
