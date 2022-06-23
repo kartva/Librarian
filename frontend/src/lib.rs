@@ -17,7 +17,6 @@ pub mod io_utils {
     use web_sys::FileReaderSync;
         
     #[wasm_bindgen(module = "/js/exports.js")]
-    //#[link(wasm_import_module = "/web_library_base_compositions.js")]
     extern "C" {
         pub fn get_file() -> web_sys::File; 
     }
