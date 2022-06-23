@@ -1,5 +1,3 @@
-
-
 onmessage = async function(e) {
 	const wasm = await import("../pkg/index");
 
@@ -18,7 +16,7 @@ onmessage = async function(e) {
 			result.push(JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type)));
 		} catch (e) {
 			console.error(e);
-			postMessage({err: file.name});
+			// our panic hook calls the exported function set_error to propogate the actual error.
 			return;
 		}
 	}

@@ -1,5 +1,5 @@
 import Worker from "worker-loader!./worker.js";
- 
+
 const wasm = import("../pkg/index").then((wasm) => {
     function processFile (files) {
         const wasmProcess = new Worker();
@@ -12,7 +12,7 @@ const wasm = import("../pkg/index").then((wasm) => {
             let result = e.data;
             
             if (result.err) {
-                status.innerText = 'Error encountered while processing. Press F12 for more info.';
+                status.innerText = `Error encountered while processing:\n${result.err}`;
                 status.classList.add('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show');
                 loading(false); //remove loading part
 

@@ -1,5 +1,8 @@
-function get_file (arr) {
+export function get_file () {
 	return self.readFile;
 }
 
-export {get_file};
+export function set_error (msg) {
+	console.error(msg);
+	postMessage({err: msg});
+}
