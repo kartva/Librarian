@@ -113,6 +113,8 @@ RUN apt-get update \
     && apt-get update \
 	&& apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
 	&& Rscript -e ' install.packages(c("tidyverse", "umap")) ' \
+  && Rscript -e 'install.packages("remotes")' \
+  && Rscript -e 'remotes::install_github("rstudio/pins")' \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

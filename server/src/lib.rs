@@ -7,6 +7,8 @@ use std::{
 use log::{self, debug, trace, warn};
 use thiserror::Error;
 
+const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_220623.R";
+
 #[derive(Debug, Error)]
 pub enum PlotError {
     #[error("RScript exited unsuccessfully: {0}")]
@@ -61,7 +63,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .arg("scripts/librarian_plotting_multi_server_220606.R")
+        .arg(R_SCRIPT_PATH)
         .arg("--args")
         .arg(&tmpdir)
         .spawn()
