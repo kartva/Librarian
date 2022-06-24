@@ -109,7 +109,6 @@ compositions_umap_results %>%
   theme(legend.title = element_blank(), aspect.ratio = 0.8) -> compositions_umap_results_plot
 
 rasterise(compositions_umap_results_plot, layers = 'Point', dpi = 300) -> compositions_umap_results_plot
-compositions_umap_results_plot
 
 ggsave(filename = file.path(args[2],"Compositions_map.svg"), width = 7, height = 5, units = "in")
 
@@ -185,7 +184,6 @@ umap_grid_tile_long %>%
   theme(aspect.ratio = 0.8, panel.background = element_rect(fill = "#feffe9"), panel.grid = element_blank(), plot.title = element_text(size = 14, hjust = 0.5)) -> umap_grid_tile_long_plot
 
 rasterise(umap_grid_tile_long_plot, layers = 'Tile', dpi = 300) -> compositions_umap_results_plot
-umap_grid_tile_long_plot
 
 ggsave(filename = file.path(args[2],"Probability_maps.svg"), width = 9, height = 7, units = "in")
 
@@ -215,8 +213,6 @@ test_percentage %>%
   coord_flip() +
   theme_bw(base_size = 14) +
   theme(axis.title = element_blank(), legend.position = "right", legend.title = element_blank()) -> test_percentage_plot
-
-test_percentage_plot
 
 sample_number <- nrow(test)
 
