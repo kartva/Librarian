@@ -20,7 +20,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 ## creating the pin board
 
-board <- board_folder("./scripts")
+board <- board_folder(".")
 
 
 ## loading the pinned model and coordinates
@@ -28,7 +28,7 @@ board <- board_folder("./scripts")
 board %>% 
   pin_read("compositions_umap") -> compositions_umap
 
-pinboard %>% 
+board %>% 
   pin_read("compositions_umap_results") -> compositions_umap_results
 
 
