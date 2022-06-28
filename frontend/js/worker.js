@@ -13,7 +13,7 @@ onmessage = async function(e) {
 		console.debug(file);
 
 		try {
-			result.push(JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type)));
+			result.push(JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type || "application/gzip" == file.type)));
 		} catch (e) {
 			console.error(e);
 			// our panic hook calls the exported function set_error to propogate the actual error.
