@@ -4,7 +4,10 @@ set -euxo pipefail
 
 npm --version && \
 	cargo --version && \
-	wasm-pack --version
+	wasm-pack --version && \
+	Rscript --version \
+
+
 
 cd frontend
 npm install
