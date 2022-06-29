@@ -1,0 +1,18 @@
+
+1. Transcriptome analysis of the TA muscles from WT and Dmd Exon 51 Knockout mice
+(Submitter supplied) Duchenne muscular dystrophy (DMD) is a fatal muscle disorder characterized by cycles of degeneration and regeneration of multinucleated myofibers and pathological activation of a variety of other associated cell types. Here, we describe the creation of a new mouse model of DMD caused by deletion of exon 51 of the dystrophin gene, which represents a prevalent mutation in humans. To understand the transcriptional abnormalities and heterogeneity associated with the nuclei of myofibers, as well as other mononucleated cell types that contribute to DMD disease pathogenesis, we performed single nucleus transcriptomics of skeletal muscle of mice with exon 51 deletion. more...
+Organism:	Mus musculus
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL19057 6 Samples
+FTP download: GEO (TXT) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE156nnn/GSE156496/
+SRA Run Selector: https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA658118
+Series		Accession: GSE156496	ID: 200156496
+
+2. Prenatal exposure to environmental toxins induces sexually dimorphic transcriptome changes in neonatal offspring
+(Submitter supplied) Purpose: Gestational exposure to environmental toxins and socioeconomic stressors are epidemiologically linked to neurodevelopmental disorders with strong male-bias, such as autism. We modeled these prenatal risk factors in mice, by co-exposing pregnant dams to an environmental pollutant and limited-resource stress, which robustly activated the maternal immune system. Only male offspring displayed long-lasting behavioral abnormalities and alterations in the activity of brain networks encoding social interactions. more...
+Organism:	Mus musculus
+Type:		Expression profiling by high throughput sequencing
+Platform: GPL24247 16 Samples
+FTP download: GEO (CSV) ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE160nnn/GSE160344/
+SRA Run Selector: https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA672975
+Series		Accession: GSE160344	ID: 200160344

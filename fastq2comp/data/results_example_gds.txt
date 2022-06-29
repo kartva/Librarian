@@ -1,0 +1,2 @@
+1	Mus musculus	RNA-Seq	SRR12478073	ftp.sra.ebi.ac.uk/vol1/fastq/SRR124/073/SRR12478073/SRR12478073.fastq.gz	Transcriptome analysis of the TA muscles from WT and Dmd Exon 51 Knockout mice
+2	Mus musculus	RNA-Seq	SRR12926516	ftp.sra.ebi.ac.uk/vol1/fastq/SRR129/016/SRR12926516/SRR12926516_1.fastq.gz	Prenatal exposure to environmental toxins induces sexually dimorphic transcriptome changes in neonatal offspring
