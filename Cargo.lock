@@ -650,7 +650,6 @@ dependencies = [
 [[package]]
 name = "fastq2comp"
 version = "0.5.0"
-source = "git+https://github.com/ChristelKrueger/Library_Base_Compositions?tag=v0.5.0#4490333c04696ad3281374783b4262559db9a596"
 dependencies = [
  "flate2",
  "lazy_static",

@@ -60,7 +60,6 @@ const wasm = import("../pkg/index").then((wasm) => {
                 }
                 
                 let smaller_reads = result.out.map((e, i) => {e.idx = i + 1; return e;}).filter(e => e.reads_read < 100000);
-                console.debug(smaller_reads);
 
                 if (smaller_reads.length != 0) {
                     status.innerText = `Fewer valid reads (${smaller_reads.map(e => ` ${e.reads_read} in sample ${e.idx}`)}) than recommended (100000)

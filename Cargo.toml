@@ -3,7 +3,8 @@
 members = [
     "cli",
 	"frontend",
-	"server"
+	"server",
+	"fastq2comp"
 ]
 
 [profile.release.package.librarian-frontend]
