@@ -28,6 +28,12 @@ pub struct Plot {
     pub filename: String,
 }
 
+impl std::fmt::Debug for Plot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.filename.fmt(f)
+    }
+}
+
 pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     assert!(!comp.is_empty());
 
