@@ -52,29 +52,29 @@ where
 async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
-    HttpServer::new(|| {
-        SimpleLogger::new().with_utc_timestamps().with_colors(true)
-            .with_level(log::LevelFilter::Info)
-            .env()
-            .init()
-            .unwrap();
+    SimpleLogger::new().with_utc_timestamps().with_colors(true)
+    .with_level(log::LevelFilter::Info)
+    .env()
+    .init()
+    .unwrap();
 
-        let frontend_index: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
-        let example_input: PathBuf = get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());
+    let frontend_index: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
+    let example_input: PathBuf = get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());
 
+    HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .service(plot)
             .service(
                 Files::new(
                     "/example_inputs",
-                    example_input
+                    &example_input
                 ).prefer_utf8(true)
             )
             .service(
                 Files::new(
                     "/",
-                    frontend_index
+                    &frontend_index
                 )
                 .index_file("index.html")
                 .prefer_utf8(true),
