@@ -4,7 +4,7 @@ use std::{
     io::{Read, Write},
     process::{Command, Stdio},
 };
-use log::{self, debug, trace, warn};
+use log::{self, debug, trace, warn, log_enabled};
 use thiserror::Error;
 
 const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_220623.R";
@@ -63,6 +63,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
+        .stderr({
+            if log_enabled!(log::Level::Debug) {
+                Stdio::inherit()
+            } else {
+                Stdio::null()
+            }
+        })
         .arg(R_SCRIPT_PATH)
         .arg("--args")
         .arg(&tmpdir)
