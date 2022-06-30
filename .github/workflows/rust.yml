@@ -17,13 +17,7 @@ jobs:
 
     - name: Show toolchain
       run: rustup show
-
-  Save-Binaries:
-
-    needs: Build
-    runs-on: ubuntu-latest
-
-    steps:
+      
     - uses: actions/upload-artifact@v2
       name: Save Librarian cli
       with:
