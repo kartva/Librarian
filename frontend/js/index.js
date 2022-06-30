@@ -39,9 +39,6 @@ const wasm = import("../pkg/index").then((wasm) => {
                         
                         //display plots
                         for (const graph of graphs) {
-                            console.log('graph');
-                            console.log(graph);
-
                             const [filename, data] = Object.entries(graph)[0];
                             let link = 'data:image/svg+xml;base64,' + data;
                             let img = document.createElement('img');
