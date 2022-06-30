@@ -98,12 +98,12 @@ async fn query(args: Cli) {
     for res in res.into_iter() {
         let r = res.plot;
 
-        let d = res.filename
-            + "-"
+		let (root, ext) = res.filename.split_once('.').expect("filename did not have . at all");
+        let d = root.to_string() + "-"
             + &OffsetDateTime::now_utc()
                 .format(&parse("[ year ]-[ month ]-[ day ]-[ hour ]-[ minute ]").unwrap())
                 .unwrap()
-            + ".png";
+            + "." + ext;
 
         let p = match &args.outdir {
             None => PathBuf::from(d),

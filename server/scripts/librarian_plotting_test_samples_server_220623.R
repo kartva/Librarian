@@ -110,7 +110,7 @@ compositions_umap_results %>%
 
 rasterise(compositions_umap_results_plot, layers = 'Point', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"Compositions_map.svg"), width = 7, height = 5, units = "in")
+ggsave(filename = file.path(args[2],"compositions-map.svg"), width = 7, height = 5, units = "in")
 
 
 ## Introducing a grid to the plot
@@ -185,7 +185,7 @@ umap_grid_tile_long %>%
 
 rasterise(umap_grid_tile_long_plot, layers = 'Tile', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"Probability_maps.svg"), width = 9, height = 7, units = "in")
+ggsave(filename = file.path(args[2],"probability-maps.svg"), width = 9, height = 7, units = "in")
 
 
 ## Pulling out probabilities for the test library
@@ -216,7 +216,7 @@ test_percentage %>%
 
 sample_number <- nrow(test)
 
-ggsave(filename = file.path(args[2],"Prediction_plot.svg"), width = 7, height = (3.5 + (sample_number * 0.1)), units = "in")
+ggsave(filename = file.path(args[2],"prediction-plot.svg"), width = 7, height = (3.5 + (sample_number * 0.1)), units = "in")
 
 
 
