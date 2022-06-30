@@ -4,7 +4,7 @@
 # Librarian 
 </center>
 
-> A quality-assurance tool to sanity check FASTQ compositions and their library types.
+> A tool to predict the sequencing library type from the base composition of a supplied FastQ file.
 
 Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures for library quality control: Test library compositions are extracted and compared against previously published data sets.
 
