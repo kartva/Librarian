@@ -7,7 +7,6 @@ extern "C" {
 }
 
 pub fn set_panic_hook() {
-    
     fn hook_impl(info: &panic::PanicInfo) {
         let msg = info.to_string();
         set_error(msg);

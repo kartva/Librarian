@@ -1,10 +1,10 @@
 use fastq2comp::BaseComp;
+use log::{self, debug, log_enabled, trace, warn};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
 };
-use log::{self, debug, trace, warn, log_enabled};
 use thiserror::Error;
 
 const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_220623.R";
@@ -13,13 +13,13 @@ const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_2206
 pub enum PlotError {
     #[error("R script exited unsuccessfully")]
     RExit,
-	#[error("Error opening directory")]
-	DirErr(#[from] std::io::Error)
+    #[error("Error opening directory")]
+    DirErr(#[from] std::io::Error),
 }
 
 impl actix_web::error::ResponseError for PlotError {}
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 /// Describes a plot; which has a filename and data.
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
@@ -35,8 +35,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     for (i, c) in comp.into_iter().enumerate() {
         input += &format!("sample_{:02}\t", i + 1);
-        c
-            .lib
+        c.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
             .for_each(|curr| input.push_str(&(curr.to_string() + "\t")));
@@ -58,7 +57,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     .unwrap()
     .to_owned();
 
-	debug!("Tempdir: {:?}", tmpdir);
+    debug!("Tempdir: {:?}", tmpdir);
 
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
@@ -93,28 +92,31 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     let out_arr = read_dir(&tmpdir)?
         .filter_map(|e| {
-			if e.is_err() {
-				warn!("Error iterating over dir {:?}, skipping file.", &tmpdir)
-			};
-			e.ok()
-		})
+            if e.is_err() {
+                warn!("Error iterating over dir {:?}, skipping file.", &tmpdir)
+            };
+            e.ok()
+        })
         .filter_map(|e| {
             let filename = e.file_name().to_string_lossy().to_owned().to_string();
             let f = File::open(e.path());
-			if f.is_err() {
-				warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
-				return None;
-			};
+            if f.is_err() {
+                warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
+                return None;
+            };
             let mut buf = Vec::new();
-			if let Err(err) = f.unwrap().read_to_end(&mut buf) {
-				warn!("Error reading file {:?} due to error {:?}", e.path(), err);
-				return None;
-			}
-			Some(Plot {plot: buf, filename})
+            if let Err(err) = f.unwrap().read_to_end(&mut buf) {
+                warn!("Error reading file {:?} due to error {:?}", e.path(), err);
+                return None;
+            }
+            Some(Plot {
+                plot: buf,
+                filename,
+            })
         })
         .collect::<Vec<_>>();
 
-	trace!("Deleting files.");
+    trace!("Deleting files.");
     std::fs::remove_dir_all(&tmpdir).expect("Error deleting tmpfile.");
 
     Ok(out_arr)

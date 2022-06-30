@@ -1,9 +1,9 @@
-use fastq2comp::extract_comp::{SampleArgs, run_json};
-use fastq2comp::io_utils;
 use fastq2comp::extract_comp::FASTQReader;
+use fastq2comp::extract_comp::{run_json, SampleArgs};
+use fastq2comp::io_utils;
 
-use std::{path::PathBuf, io::Write};
 use std::fs::File;
+use std::{io::Write, path::PathBuf};
 
 /// This example extracts the base composition of a file
 /// and prints it JSON format.

@@ -1,5 +1,5 @@
-use std::io::BufRead;
 use crate::BaseComp;
+use std::io::BufRead;
 
 #[cfg(test)]
 mod test_check_read {
@@ -26,12 +26,13 @@ mod test_check_read {
     }
 
     #[test]
-    fn test_check_read () {
+    fn test_check_read() {
         let mut reader = return_reader(
-br"@
+            br"@
 AAAAANNNNN
 +
-!!!!!!!!!!");
+!!!!!!!!!!",
+        );
         let mut f = FASTQRead::new(5);
         f.read_fastq(&mut reader);
 
@@ -40,7 +41,7 @@ AAAAANNNNN
             target_read_count: 1,
             min_phred_score: 0,
             n_content: None,
-            trimmed_length: 5
+            trimmed_length: 5,
         };
 
         assert!(f.check_read(&args));
@@ -50,7 +51,7 @@ AAAAANNNNN
             target_read_count: 1,
             min_phred_score: 0,
             n_content: None,
-            trimmed_length: 15
+            trimmed_length: 15,
         };
 
         assert!(!f.check_read(&args));
@@ -60,7 +61,7 @@ AAAAANNNNN
             target_read_count: 1,
             min_phred_score: 0,
             n_content: Some(1),
-            trimmed_length: 0
+            trimmed_length: 0,
         };
 
         assert!(!f.check_read(&args));
@@ -70,7 +71,7 @@ AAAAANNNNN
             target_read_count: 1,
             min_phred_score: 50,
             n_content: Some(1),
-            trimmed_length: 0
+            trimmed_length: 0,
         };
 
         assert!(!f.check_read(&args));
@@ -80,7 +81,7 @@ AAAAANNNNN
 #[cfg(test)]
 mod test_runs {
     use super::*;
-    use crate::{BaseCompColBases, test_utils::*};
+    use crate::{test_utils::*, BaseCompColBases};
 
     #[test]
     fn test_json_run() {
@@ -89,10 +90,10 @@ mod test_runs {
             target_read_count: 1u64,
             min_phred_score: 0,
             n_content: None,
-            trimmed_length: 2
+            trimmed_length: 2,
         };
 
-        let result = run_json( FASTQReader::new(args, reader));
+        let result = run_json(FASTQReader::new(args, reader));
 
         assert_eq!(
             result,
@@ -107,10 +108,10 @@ mod test_runs {
             target_read_count: 1u64,
             min_phred_score: 0,
             n_content: None,
-            trimmed_length: 2
+            trimmed_length: 2,
         };
 
-        let (result, seqs) = run_tsv( FASTQReader::new(args, reader));
+        let (result, seqs) = run_tsv(FASTQReader::new(args, reader));
 
         assert_eq!(
             result,
@@ -120,9 +121,9 @@ mod test_runs {
     }
 
     #[test]
-    fn test_run () {
+    fn test_run() {
         let reader = return_reader(
-br"@
+            br"@
 AACAA
 +
 *****
@@ -157,18 +158,28 @@ CCCCC
 @
 NNNNN
 +
-*****");
+*****",
+        );
 
         let args = SampleArgs {
             target_read_count: 8,
             min_phred_score: 1,
             n_content: Some(1),
-            trimmed_length: 4
+            trimmed_length: 4,
         };
 
         let res = run(FASTQReader::new(args, reader));
         assert_eq!(res.reads_read(), 7);
-        assert_eq!(res.lib[0].bases, BaseCompColBases {A: 28, T: 57, G: 0, C: 14, N: 0});
+        assert_eq!(
+            res.lib[0].bases,
+            BaseCompColBases {
+                A: 28,
+                T: 57,
+                G: 0,
+                C: 14,
+                N: 0
+            }
+        );
     }
 }
 
@@ -178,14 +189,14 @@ mod test_fastqreader {
     use crate::test_utils::*;
 
     #[test]
-    fn test_skipping () {
+    fn test_skipping() {
         // cases of:
         // read too short
         // too many N
         // too low quality
         // correct read
         let reader = return_reader(
-br"@
+            br"@
 ACGT
 +
 IIII
@@ -201,15 +212,19 @@ ACGTN
 ACGTN
 +
 IIIII
-");
+",
+        );
 
-        let mut freader = FASTQReader::new(SampleArgs {
-            target_read_count: 2,
-            min_phred_score: 1,
-            n_content: Some(2),
-            trimmed_length: 5
-        }, reader);
-        
+        let mut freader = FASTQReader::new(
+            SampleArgs {
+                target_read_count: 2,
+                min_phred_score: 1,
+                n_content: Some(2),
+                trimmed_length: 5,
+            },
+            reader,
+        );
+
         assert_eq!(freader.next(), Some("ACGTN".to_string()));
     }
 }
@@ -228,7 +243,12 @@ pub struct SampleArgs {
 
 impl Default for SampleArgs {
     fn default() -> Self {
-        SampleArgs { target_read_count: 100000, min_phred_score: 0, n_content: None, trimmed_length: 50 }
+        SampleArgs {
+            target_read_count: 100000,
+            min_phred_score: 0,
+            n_content: None,
+            trimmed_length: 50,
+        }
     }
 }
 
@@ -248,23 +268,22 @@ pub(crate) struct FASTQRead {
 }
 
 impl FASTQRead {
-
     /// Reads a complete FASTQ statement (composed of 4 lines) into itself
     /// - `reader`: Object implementing `std::io::BufRead` from which to read lines
     /// - Returns `None` if EOF reached.
-    fn read_fastq (&mut self, reader: &mut impl BufRead) -> Option<()> {
+    fn read_fastq(&mut self, reader: &mut impl BufRead) -> Option<()> {
         //Skips the 1st and 3rd line resp. in 4 lines of input
         for s in [&mut self.seq, &mut self.quals].iter_mut() {
             **s = match reader.lines().nth(1) {
                 Some(n) => n.expect("Error reading line. Make sure UTF-8 input is supported"),
-                None => {return None},
+                None => return None,
             }
         }
 
         Some(())
     }
 
-    fn new (len: usize) -> FASTQRead {
+    fn new(len: usize) -> FASTQRead {
         FASTQRead {
             seq: String::with_capacity(len),
             quals: String::with_capacity(len),
@@ -300,7 +319,7 @@ impl FASTQRead {
                     return Err(());
                 }
                 Ok(&str[0..n])
-            },
+            }
             _ => Ok(&str[0..]),
         }
     }
@@ -308,9 +327,9 @@ impl FASTQRead {
     /** Checks read according to parameters given in SampleArgs,
     return `true` if read should be included in calculation of Base Compositions,
     return `false` if not.
-    
+
     Eg.
-    Read "N" and SampleArgs.n_content: Some(1) will return false. 
+    Read "N" and SampleArgs.n_content: Some(1) will return false.
     */
     fn check_read(&mut self, args: &SampleArgs) -> bool {
         let seq = FASTQRead::trim(&self.seq, args.trimmed_length);
@@ -323,7 +342,10 @@ impl FASTQRead {
 
         // Check for numbers in reads
         if self.check_colorspace(seq) {
-            panic!("Found numbers in reads - this is probably colorspace\n{:?}", (seq, quals));
+            panic!(
+                "Found numbers in reads - this is probably colorspace\n{:?}",
+                (seq, quals)
+            );
         }
 
         // Count the N's
@@ -366,11 +388,12 @@ Example output (example has whitespace to make it readable, output will not have
 ```
 Note: Reads read counts _number_ of reads read,
 while pos represents the _column_ of reads whose percentage is being displayed.
-*/ 
-pub fn run_json<T> (fastq_reader: FASTQReader<T>) -> String
-where T: BufRead
+*/
+pub fn run_json<T>(fastq_reader: FASTQReader<T>) -> String
+where
+    T: BufRead,
 {
-    let comp = run (fastq_reader);
+    let comp = run(fastq_reader);
 
     serde_json::to_string(&comp).expect("Error converting base compositions to JSON")
 }
@@ -388,18 +411,25 @@ Output for 1 read with two columns.
 )
 ```
 */
-pub fn run_tsv<T> (fastq_reader: FASTQReader<T>) -> (String, u64)
-where T: BufRead
+pub fn run_tsv<T>(fastq_reader: FASTQReader<T>) -> (String, u64)
+where
+    T: BufRead,
 {
-    let comp = run (fastq_reader);
+    let comp = run(fastq_reader);
     let lines_read = comp.reads_read;
 
-    ({let mut s = comp.lib.into_iter().flat_map(|b| b.bases.iter()).
-        fold(String::new(), |acc, curr| acc + &curr.to_string() + "\t");
-        s.pop(); // remove trailing ',' to make it valid tsv
-        s
-    },
-    lines_read)
+    (
+        {
+            let mut s = comp
+                .lib
+                .into_iter()
+                .flat_map(|b| b.bases.iter())
+                .fold(String::new(), |acc, curr| acc + &curr.to_string() + "\t");
+            s.pop(); // remove trailing ',' to make it valid tsv
+            s
+        },
+        lines_read,
+    )
 }
 
 use serde::{Deserialize, Serialize};
@@ -410,8 +440,9 @@ pub struct Output {
 }
 
 /// Takes in reader (for FASTQ lines) and SampleArgs, returns [`BaseComp`]
-pub fn run<T> (fastq_reader: FASTQReader<T>) -> BaseComp
-where T: BufRead
+pub fn run<T>(fastq_reader: FASTQReader<T>) -> BaseComp
+where
+    T: BufRead,
 {
     //TODO: Convert args.target_read_count to usize or figure out how to allocate u64-sized vec
     let sampled_seqs = fastq_reader.sample_random();
@@ -433,7 +464,6 @@ where T: BufRead
     base_comp
 }
 
-
 pub struct FASTQReader<T: BufRead> {
     curr: FASTQRead,
     reader: T,
@@ -442,7 +472,7 @@ pub struct FASTQReader<T: BufRead> {
 }
 
 impl<T: BufRead> FASTQReader<T> {
-    pub fn new (args: SampleArgs, reader: T) -> FASTQReader<T> {
+    pub fn new(args: SampleArgs, reader: T) -> FASTQReader<T> {
         let read = FASTQRead::new(args.trimmed_length);
         let target_read_count = args.target_read_count;
 
@@ -453,7 +483,7 @@ impl<T: BufRead> FASTQReader<T> {
             target_read_count,
         }
     }
-    pub fn sample_random (self) -> Vec<String> {
+    pub fn sample_random(self) -> Vec<String> {
         let mut sampled_seqs = vec![String::new(); self.target_read_count as usize];
 
         // Randomly sample FASTQ reads
@@ -465,13 +495,18 @@ impl<T: BufRead> FASTQReader<T> {
 impl<T: BufRead> Iterator for FASTQReader<T> {
     type Item = String;
 
-    fn next (&mut self) -> Option<String> {
+    fn next(&mut self) -> Option<String> {
         loop {
             self.curr.read_fastq(&mut self.reader)?;
-            if FASTQRead::check_read(&mut self.curr, &self.sample_args) {break}
+            if FASTQRead::check_read(&mut self.curr, &self.sample_args) {
+                break;
+            }
         }
 
-        Some(FASTQRead::trim(&self.curr.seq, self.sample_args.trimmed_length).unwrap().to_string())
+        Some(
+            FASTQRead::trim(&self.curr.seq, self.sample_args.trimmed_length)
+                .unwrap()
+                .to_string(),
+        )
     }
-
 }

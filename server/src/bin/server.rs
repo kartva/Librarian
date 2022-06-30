@@ -5,72 +5,65 @@ https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
 */
 
 use actix_files::Files;
-use actix_web::{
-    error, middleware, post, web, App, HttpResponse, HttpServer,
-};
+use actix_web::{error, middleware, post, web, App, HttpResponse, HttpServer};
 
 use fastq2comp::BaseComp;
 use log::{self, warn};
-use serde_json::{to_vec};
+use serde_json::to_vec;
 use simple_logger::SimpleLogger;
-use std::{
-    env, path::PathBuf, str::FromStr, fmt::Debug
-};
+use std::{env, fmt::Debug, path::PathBuf, str::FromStr};
 
 use server::plot_comp;
 
 #[post("/api/plot_comp")]
 async fn plot(comp: web::Json<Vec<BaseComp>>) -> Result<HttpResponse, error::Error> {
-    let plots =
-        web::block(move || plot_comp(comp.into_inner())).await??;
+    let plots = web::block(move || plot_comp(comp.into_inner())).await??;
 
-    Ok(HttpResponse::Ok().content_type("application/json").body(to_vec(&plots).unwrap()))
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .body(to_vec(&plots).unwrap()))
 }
 
-fn get_env_or_default<K, S> (key: K, default: S) -> S
+fn get_env_or_default<K, S>(key: K, default: S) -> S
 where
     K: AsRef<std::ffi::OsStr> + Debug,
-    S: FromStr + Debug
+    S: FromStr + Debug,
 {
     env::var(&key)
-            .ok()
-            .and_then(|val| val.parse().ok())
-            .unwrap_or_else(|| {
-                warn!("{:?} not found, using default value {:?}", &key, default);
-                default
-            })
+        .ok()
+        .and_then(|val| val.parse().ok())
+        .unwrap_or_else(|| {
+            warn!("{:?} not found, using default value {:?}", &key, default);
+            default
+        })
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
-    SimpleLogger::new().with_utc_timestamps().with_colors(true)
+    SimpleLogger::new()
+        .with_utc_timestamps()
+        .with_colors(true)
         .with_level(log::LevelFilter::Info)
         .env()
         .init()
         .unwrap();
 
-    let frontend_index: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
-    let example_input: PathBuf = get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());
+    let frontend_index: PathBuf =
+        get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
+    let example_input: PathBuf =
+        get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());
 
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .service(plot)
+            .service(Files::new("/example_inputs", &example_input).prefer_utf8(true))
             .service(
-                Files::new(
-                    "/example_inputs",
-                    &example_input
-                ).prefer_utf8(true)
-            )
-            .service(
-                Files::new(
-                    "/",
-                    &frontend_index
-                )
-                .index_file("index.html")
-                .prefer_utf8(true),
+                Files::new("/", &frontend_index)
+                    .index_file("index.html")
+                    .prefer_utf8(true),
             )
     })
     .bind(("0.0.0.0", get_env_or_default("LIBRARIAN_PORT", 8186)))?

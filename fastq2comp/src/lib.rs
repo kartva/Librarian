@@ -4,8 +4,7 @@ pub mod test_utils {
     use std::io::Cursor;
     /// Returns reader which implements Read trait.
     /// - `s`: Data which should be yielded by the reader upon read
-    pub fn return_reader (s: &[u8]) -> Cursor<&[u8]> {
-        
+    pub fn return_reader(s: &[u8]) -> Cursor<&[u8]> {
         Cursor::new(s)
     }
 
@@ -16,23 +15,27 @@ pub mod test_utils {
     }
 
     pub fn get_writer_content(writer: Cursor<Vec<u8>>) -> String {
-        std::str::from_utf8(&writer.get_ref()[0..]).unwrap().to_string()
+        std::str::from_utf8(&writer.get_ref()[0..])
+            .unwrap()
+            .to_string()
     }
 }
 
 pub mod io_utils {
-    use std::path::PathBuf;
-    use std::fs::OpenOptions;
-    use std::io::{self, BufReader, BufRead, Write, Read};
     use flate2::read::GzDecoder;
+    use std::fs::OpenOptions;
+    use std::io::{self, BufRead, BufReader, Read, Write};
+    use std::path::PathBuf;
 
     // Reader is a wrapper over BufRead
     // Takes in a PathBuf and open it or if no PathBuf is provided, opens up stdin
     // And provides an interface over the actual reading.
     pub fn compressed_reader<T: Read + 'static>(reader: T, compressed: bool) -> Box<dyn BufRead> {
-        Box::new(BufReader::new(
-            if compressed {Box::new(GzDecoder::new(reader))} else {Box::new(reader) as Box<dyn Read>}
-        ))
+        Box::new(BufReader::new(if compressed {
+            Box::new(GzDecoder::new(reader))
+        } else {
+            Box::new(reader) as Box<dyn Read>
+        }))
     }
 
     use std::io::ErrorKind;
@@ -40,21 +43,25 @@ pub mod io_utils {
     /// And return writer to stdout if PathBuf not given
     pub fn get_writer(output: &Option<PathBuf>) -> Box<dyn Write> {
         match output {
-            Some(file) => Box::new(OpenOptions::new().append(true).open(&file).unwrap_or_else(|error| {
-                if error.kind() == ErrorKind::NotFound {
-                    OpenOptions::new().create(true).write(true).open(&file).expect("Problem creating the file!")
-                } else {
-                    panic!("Problem opening the file: {:?}", error);
-                }
-            })),
-            None => {
-                Box::new(io::stdout())
-            },
+            Some(file) => Box::new(OpenOptions::new().append(true).open(&file).unwrap_or_else(
+                |error| {
+                    if error.kind() == ErrorKind::NotFound {
+                        OpenOptions::new()
+                            .create(true)
+                            .write(true)
+                            .open(&file)
+                            .expect("Problem creating the file!")
+                    } else {
+                        panic!("Problem opening the file: {:?}", error);
+                    }
+                },
+            )),
+            None => Box::new(io::stdout()),
         }
     }
 }
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Represents a column of base composition data.
 /// Contains base composition along with position information.
@@ -89,12 +96,27 @@ impl Iterator for IterableBaseCompColBases {
     // VERY VERY IMP. If you change this, then also change the impl FromIterator<usize> for BaseCompColBases
     fn next(&mut self) -> Option<usize> {
         match self.state {
-            BaseCompColBasesIteratorState::A => {self.state = BaseCompColBasesIteratorState::C; Some(self.bases.A)},
-            BaseCompColBasesIteratorState::C => {self.state = BaseCompColBasesIteratorState::G; Some(self.bases.C)},
-            BaseCompColBasesIteratorState::G => {self.state = BaseCompColBasesIteratorState::T; Some(self.bases.G)},
-            BaseCompColBasesIteratorState::T => {self.state = BaseCompColBasesIteratorState::N; Some(self.bases.T)},
-            BaseCompColBasesIteratorState::N => {self.state = BaseCompColBasesIteratorState::End; Some(self.bases.N)},
-            _ => None
+            BaseCompColBasesIteratorState::A => {
+                self.state = BaseCompColBasesIteratorState::C;
+                Some(self.bases.A)
+            }
+            BaseCompColBasesIteratorState::C => {
+                self.state = BaseCompColBasesIteratorState::G;
+                Some(self.bases.C)
+            }
+            BaseCompColBasesIteratorState::G => {
+                self.state = BaseCompColBasesIteratorState::T;
+                Some(self.bases.G)
+            }
+            BaseCompColBasesIteratorState::T => {
+                self.state = BaseCompColBasesIteratorState::N;
+                Some(self.bases.T)
+            }
+            BaseCompColBasesIteratorState::N => {
+                self.state = BaseCompColBasesIteratorState::End;
+                Some(self.bases.N)
+            }
+            _ => None,
         }
     }
 }
@@ -103,7 +125,7 @@ impl From<BaseCompColBases> for IterableBaseCompColBases {
     fn from(base_comp_col_bases: BaseCompColBases) -> IterableBaseCompColBases {
         IterableBaseCompColBases {
             bases: base_comp_col_bases,
-            state: BaseCompColBasesIteratorState::A
+            state: BaseCompColBasesIteratorState::A,
         }
     }
 }
@@ -124,10 +146,16 @@ impl BaseCompColBases {
     }
 
     pub fn new() -> BaseCompColBases {
-        BaseCompColBases {A: 0, G: 0, T: 0, C: 0, N: 0}
+        BaseCompColBases {
+            A: 0,
+            G: 0,
+            T: 0,
+            C: 0,
+            N: 0,
+        }
     }
 
-    pub fn percentage (&mut self) {
+    pub fn percentage(&mut self) {
         let sum = self.iter().sum::<usize>();
         *self = self.iter().map(|base| (base * 100) / sum).collect();
     }
@@ -141,8 +169,14 @@ impl Default for BaseCompColBases {
 
 use std::iter::FromIterator;
 impl FromIterator<usize> for BaseCompColBases {
-    fn from_iter<I: IntoIterator<Item=usize>>(iter: I) -> Self {
-        let mut c = IterableBaseCompColBases::from(BaseCompColBases {A: 0, G: 0, C: 0, T: 0, N: 0});
+    fn from_iter<I: IntoIterator<Item = usize>>(iter: I) -> Self {
+        let mut c = IterableBaseCompColBases::from(BaseCompColBases {
+            A: 0,
+            G: 0,
+            C: 0,
+            T: 0,
+            N: 0,
+        });
         let mut iter = iter.into_iter();
 
         for ele in &mut
@@ -151,8 +185,9 @@ impl FromIterator<usize> for BaseCompColBases {
             [&mut c.bases.A,
              &mut c.bases.C,
              &mut c.bases.G,
-             &mut c.bases.T, 
-             &mut c.bases.N].iter_mut() {
+             &mut c.bases.T,
+             &mut c.bases.N].iter_mut()
+        {
             **ele = match iter.next() {
                 Some(n) => n,
                 None => panic!("Improper iterator recieved"),
@@ -184,7 +219,16 @@ mod col_base_comp_tests {
         let iter = read.bases.iter();
         let converted_read: BaseCompColBases = iter.collect();
 
-        assert_eq!(converted_read, BaseCompColBases {A: 1, T: 0, G: 0, C: 0, N: 0});
+        assert_eq!(
+            converted_read,
+            BaseCompColBases {
+                A: 1,
+                T: 0,
+                G: 0,
+                C: 0,
+                N: 0
+            }
+        );
     }
 
     #[test]
@@ -224,22 +268,33 @@ mod col_base_comp_tests {
 }
 
 impl BaseCompCol {
-    pub fn new (pos: usize) -> BaseCompCol {
-        BaseCompCol {pos, bases: BaseCompColBases {A: 0, T: 0, G: 0, C: 0, N: 0}}
+    pub fn new(pos: usize) -> BaseCompCol {
+        BaseCompCol {
+            pos,
+            bases: BaseCompColBases {
+                A: 0,
+                T: 0,
+                G: 0,
+                C: 0,
+                N: 0,
+            },
+        }
     }
 
-    pub fn extract (&mut self, s: &u8) {
+    pub fn extract(&mut self, s: &u8) {
         match s {
             b'A' => self.bases.A += 1,
             b'T' => self.bases.T += 1,
             b'G' => self.bases.G += 1,
             b'C' => self.bases.C += 1,
             b'N' => self.bases.N += 1,
-            _ => panic!("Invalid character {:?} == {:?} found in read", *s as char, s.to_ascii_lowercase())
-        }            
+            _ => panic!(
+                "Invalid character {:?} == {:?} found in read",
+                *s as char,
+                s.to_ascii_lowercase()
+            ),
+        }
     }
-
-    
 }
 
 /// Represents the entire base composition.
@@ -252,8 +307,11 @@ pub struct BaseComp {
 }
 
 impl BaseComp {
-    pub fn init (len: usize) -> BaseComp {
-        let mut base_comp = BaseComp { lib: Vec::with_capacity(len), reads_read: 0};
+    pub fn init(len: usize) -> BaseComp {
+        let mut base_comp = BaseComp {
+            lib: Vec::with_capacity(len),
+            reads_read: 0,
+        };
         for i in 1..=len {
             base_comp.lib.push(BaseCompCol::new(i));
         }
@@ -261,11 +319,11 @@ impl BaseComp {
         base_comp
     }
 
-    pub fn reads_read (&self) -> u64 {
+    pub fn reads_read(&self) -> u64 {
         self.reads_read
     }
 
-    pub fn len (&self) -> usize {
+    pub fn len(&self) -> usize {
         self.lib.len()
     }
 
@@ -273,7 +331,7 @@ impl BaseComp {
         self.len() == 0
     }
 
-    pub fn extract (&mut self, s: &str) {
+    pub fn extract(&mut self, s: &str) {
         for c in s.as_bytes().iter().enumerate() {
             self.lib[c.0].extract(c.1);
         }
