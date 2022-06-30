@@ -1,4 +1,6 @@
-# Build thw frontend - since this needs both Rust and NPM, can't easily pull one image and use that.
+# THIS DOCKERFILE RUNS THE SERVER.
+
+# Build the frontend - since this needs both Rust and NPM, can't easily pull one image and use that.
 # Skip to line 76 for actual setup, this is setting up both Rust and NPM.
 
 FROM buildpack-deps:buster as frontend

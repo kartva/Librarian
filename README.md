@@ -10,48 +10,10 @@ A quality-assurance tool to sanity check FASTQ compositions and their library ty
 ![image](https://user-images.githubusercontent.com/51814158/168992258-af672539-7d3b-440f-9f4d-c4ae62012948.png)
 
 
-## Setup:
-
-```bash
-docker pull docker.io/desmondwillowbrook/librarian-server
-docker run -dp 8186:8186 desmondwillowbrook/librarian-server
-```
-
-## Non-Docker setup
-Install:
-- [`npm`](https://www.npmjs.com/get-npm)
-- [`Rust (with Cargo)`](https://www.rust-lang.org/) 
-- [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
-- R
-
-```
-apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
-Rscript -e 'install.packages(c("tidyverse", "umap")) '
-Rscript -e 'install.packages("remotes")'
-Rscript -e 'remotes::install_github("rstudio/pins")'
-```
-
-```bash
-git clone https://github.com/DesmondWillowbrook/Librarian-Server.git
-cd Librarian-Server
-```
-
-```bash
-./run.sh
-```
 
 ## Batch query cli
 
-##### Install
-```bash
-cargo install --git "https://github.com/DesmondWillowbrook/Server_Web_Library_Base_Compositions/" cli
-```
-
-##### Build from source
-```bash
-cd cli
-cargo run --release -- ../frontend/example_inputs/*
-```
+Look at the [batch query cli](cli/README.md) for an alternative to the website.
 
 Plots will be produced in the same directory as of input file.
 

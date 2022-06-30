@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Builds the frontend and launches the server.
+
 set -euxo pipefail
 
 npm --version && \
