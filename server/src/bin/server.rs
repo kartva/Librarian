@@ -6,37 +6,32 @@ https://docs.microsoft.com/en-us/azure/architecture/patterns/async-request-reply
 
 use actix_files::Files;
 use actix_web::{
-    error::BlockingError, middleware, post, web, App, HttpResponse, HttpServer, Responder,
+    error, middleware, post, web, App, HttpResponse, HttpServer,
 };
 use base64::{self, STANDARD};
 use fastq2comp::BaseComp;
 use log::{self, warn};
-use serde_json::{Value, json};
+use serde_json::{Value, json, to_vec};
 use simple_logger::SimpleLogger;
 use std::{
     env, path::PathBuf, str::FromStr, fmt::Debug
 };
 
-use librarian_server::plot_comp;
+use server::plot_comp;
 
 #[post("/api/plot_comp")]
-async fn plot(comp: web::Json<Vec<BaseComp>>) -> impl Responder {
-    match web::block(move || plot_comp(comp.into_inner())).await {
-        Ok(o) => {
-            let out_arr = o.into_iter().map(|p| {
-                    let key = p.filename;
-                    let val = base64::encode_config(p.plot, STANDARD);
-                    json!({key: val})
-                }
-            ).collect();
+async fn plot(comp: web::Json<Vec<BaseComp>>) -> Result<HttpResponse, error::Error> {
+    let plots =
+        web::block(move || plot_comp(comp.into_inner())).await??;
 
-            HttpResponse::Ok().content_type("application/json").body(Value::Array(out_arr))
-        },
-        Err(blocking_e) => match blocking_e {
-            BlockingError::Error(s) => HttpResponse::InternalServerError().body(s.to_string()),
-            BlockingError::Canceled => panic!("Error blocking threadpool?"),
-        },
-    }
+    let out_arr = plots.into_iter().map(|p| {
+            let key = p.filename;
+            let val = base64::encode_config(p.plot, STANDARD);
+            json!({key: val})
+        }
+    ).collect();
+
+    Ok(HttpResponse::Ok().content_type("application/json").body(to_vec(&Value::Array(out_arr)).unwrap()))
 }
 
 fn get_env_or_default<K, S> (key: K, default: S) -> S
@@ -74,14 +69,15 @@ async fn main() -> std::io::Result<()> {
                 Files::new(
                     "/example_inputs",
                     example_input
-                )
+                ).prefer_utf8(true)
             )
             .service(
                 Files::new(
                     "/",
                     frontend_index
                 )
-                .index_file("index.html"),
+                .index_file("index.html")
+                .prefer_utf8(true),
             )
     })
     .bind(("0.0.0.0", get_env_or_default("LIBRARIAN_PORT", 8186)))?

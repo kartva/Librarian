@@ -11,11 +11,13 @@ const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_2206
 
 #[derive(Debug, Error)]
 pub enum PlotError {
-    #[error("RScript exited unsuccessfully: {0}")]
-    RExit(String),
+    #[error("R script exited unsuccessfully")]
+    RExit,
 	#[error("Error opening directory")]
 	DirErr(#[from] std::io::Error)
 }
+
+impl actix_web::error::ResponseError for PlotError {}
 
 use serde::{Serialize, Deserialize};
 /// Describes a plot; which has a filename and data.
@@ -25,8 +27,6 @@ pub struct Plot {
     pub plot: Vec<u8>,
     pub filename: String,
 }
-
-impl actix_web::error::ResponseError for PlotError {}
 
 pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     assert!(!comp.is_empty());
@@ -79,13 +79,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
-        let mut buf = String::new();
-        return Err(PlotError::RExit(
-            match child.stdout.take().unwrap().read_to_string(&mut buf) {
-                Ok(_) => buf,
-                Err(e) => e.to_string(),
-            },
-        ));
+        return Err(PlotError::RExit);
     };
 
     debug!("Child executed successfuly.");

@@ -7,6 +7,6 @@ members = [
 	"fastq2comp"
 ]
 
-[profile.release.package.librarian-frontend]
+[profile.release.package.frontend]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"

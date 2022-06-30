@@ -1,5 +1,5 @@
 [package]
-name = "librarian-frontend"
+name = "frontend"
 version = "0.1.0"
 authors = ["Kartavya Vashishtha <kartavya0703@gmail.com>"]
 edition = "2018"
@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 js-sys = "0.3"
 web-sys = { version = "0.3", features = ["File", "Blob", "FileReaderSync"] }
-gloo = "0.3"
+gloo = "0.8"
 wasm-bindgen = "0.2"
 fastq2comp = { path = "../fastq2comp"}
 

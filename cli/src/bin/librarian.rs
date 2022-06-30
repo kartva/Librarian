@@ -6,7 +6,7 @@ use colored::Colorize;
 
 use fastq2comp::extract_comp::{FASTQReader, run, SampleArgs};
 use fastq2comp::io_utils;
-use librarian_server::Plot;
+use server::Plot;
 use std::env::var;
 use std::io::{BufReader, Write};
 use log::{error, trace};
