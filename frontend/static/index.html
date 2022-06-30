@@ -36,7 +36,7 @@
             <div class="jumbotron mt-1 pb-1">
                 <div class="container">
                     <p class="lead">Librarian</p>
-                    <p>Predict the type of your library based on the composition of the sequence.</p>
+                    <p>Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures for library quality control: Test library compositions are extracted and compared against previously published data sets.</p>
                 </div>
             </div>
 
@@ -65,8 +65,8 @@
                 <hr/>
                 <br>
 
+                <!-- Results -->
                 <div class="row mt-4 d-none" id="result">
-                    <!-- Results -->
                     <div class="col-md-12">
                         <div class="row mb-4">
                             <h4 class="font-weight-bold col-12 col-md-8">Results</h4>
@@ -76,8 +76,7 @@
                                 <button type="button" id="download_plots" class="btn btn-lg btn-primary d-none">Downloads plots</button>
                             </div>
                         </div>
-                        
-                        
+                           
                         <div>
                             <!-- Display message while waiting for the results -->
                             <div class="row" id="spinner">
@@ -93,9 +92,23 @@
                                 </div>
                             </div>
 
+                            <div class="row col-md-8">
+                                <table id="samples_table" class="col-md-8" style="text-align:center;"></table>
+                            </div>
+
                             <!-- Display the generated plots -->
                             <div class="row" id="plots"></div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Interpretation -->
+                <div class="row mt-4 d-none" id="interpretation">
+                    <div class="col-md-12">
+                        <div class="row mb-4">
+                            <h4 class="font-weight-bold col-12 col-md-8">Interpretation</h4>
+                            <p class="col-12 col-md-8">Some regions on the map are very specific to a certain library type, others are more mixed. Therefore, for some test libraries the results will be much clearer than for others. The different plots are intended to provide a good overview of how similar the test library is to published data. The cause of any deviations should be inspected; the interpretation will be different depending on how characteristic the composition signature of the library type and how far off the projection of the test sample is.</p>
+                            </div>
                         </div>
                     </div>
                 </div>

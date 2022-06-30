@@ -37,6 +37,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         status.classList.add('d-none');
                         let graphs = await data.json();
                         
+                        //display plots
                         for (const graph of graphs) {
                             const [filename, data] = Object.entries(graph)[0];
                             let link = 'data:image/svg+xml;base64,' + data;
@@ -44,14 +45,51 @@ const wasm = import("../pkg/index").then((wasm) => {
                             img.src = link;
                             img.id = filename; //set id as filename
                             img.classList.add('img-fluid','w-60', 'p-3', 'plot');
+                            img.style.height = '400px';
+
+                            let p = document.createElement('p');
+                            let label;
+                            if (filename == 'Compositions_map.svg') {
+                                label = 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by light green circles.';
+                            }else if (filename == 'Probability_maps.svg') {
+                                label = 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.';
+                            }else if (filename == 'Prediction_plot.svg') {
+                                label = 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.';
+                            }
+
+                            let textNode = document.createTextNode(label);
+                            p.appendChild(textNode);
 
                             let div = document.createElement('div');
                             div.classList.add('col-md-6');
                             div.appendChild(img);
+                            div.appendChild(p);
                             document.getElementById('plots').appendChild(div);
                         }
 
                         document.getElementById('download_plots').classList.remove('d-none'); //display the downloads button
+
+
+                        // Fill the samples table
+                        let res = result['out'];
+                        let table = document.getElementById("samples_table");
+
+                        let row = table.insertRow();
+                        row.insertCell(0).innerHTML = 'Sample name';
+                        row.insertCell(1).innerHTML = 'Sample number';
+
+                        for (let i = 0; i < res.length; i++){
+                            row = table.insertRow();
+                            let number = res[i]['idx'];
+                            if(number < 10){
+                                number = '0' + number;
+                            }
+                            row.insertCell(0).innerHTML = res[i]['name'];
+                            row.insertCell(1).innerHTML = number;
+                        }
+
+                        document.getElementById('interpretation').classList.remove('d-none');
+
                     } else {
                         status.innerText = 'Error from server response. Press F12 and look at console for more information.';
                         status.classList.add('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show');
@@ -92,6 +130,10 @@ const wasm = import("../pkg/index").then((wasm) => {
         while (plots.firstChild) {
             plots.removeChild(plots.firstChild);
         }
+
+        //remove previous table
+        let table = document.getElementById("samples_table");
+        table.innerHTML = '';
     }
 
 
