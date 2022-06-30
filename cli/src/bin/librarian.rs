@@ -118,7 +118,7 @@ async fn query(args: Cli) {
             .write(true)
             .open(&p)
             .unwrap();
-        f.write_all(&r).unwrap();
+        f.write_all(r.as_bytes()).unwrap();
         println!("{} {:?}", "Created ".green(), p);
     }
 }

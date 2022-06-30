@@ -24,7 +24,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
     /// Raw plot data - in svg
-    pub plot: Vec<u8>,
+    // since it's svg, we'll be safe in using a String
+    pub plot: String,
     pub filename: String,
 }
 
@@ -110,8 +111,8 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
                 warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
                 return None;
             };
-            let mut buf = Vec::new();
-            if let Err(err) = f.unwrap().read_to_end(&mut buf) {
+            let mut buf = String::new();
+            if let Err(err) = f.unwrap().read_to_string(&mut buf) {
                 warn!("Error reading file {:?} due to error {:?}", e.path(), err);
                 return None;
             }
