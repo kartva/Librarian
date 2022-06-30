@@ -8,10 +8,10 @@ use actix_files::Files;
 use actix_web::{
     error, middleware, post, web, App, HttpResponse, HttpServer,
 };
-use base64::{self, STANDARD};
+
 use fastq2comp::BaseComp;
 use log::{self, warn};
-use serde_json::{Value, json, to_vec};
+use serde_json::{to_vec};
 use simple_logger::SimpleLogger;
 use std::{
     env, path::PathBuf, str::FromStr, fmt::Debug
@@ -24,14 +24,7 @@ async fn plot(comp: web::Json<Vec<BaseComp>>) -> Result<HttpResponse, error::Err
     let plots =
         web::block(move || plot_comp(comp.into_inner())).await??;
 
-    let out_arr = plots.into_iter().map(|p| {
-            let key = p.filename;
-            let val = base64::encode_config(p.plot, STANDARD);
-            json!({key: val})
-        }
-    ).collect();
-
-    Ok(HttpResponse::Ok().content_type("application/json").body(to_vec(&Value::Array(out_arr)).unwrap()))
+    Ok(HttpResponse::Ok().content_type("application/json").body(to_vec(&plots).unwrap()))
 }
 
 fn get_env_or_default<K, S> (key: K, default: S) -> S
@@ -53,10 +46,10 @@ async fn main() -> std::io::Result<()> {
     eprintln!("Starting application");
 
     SimpleLogger::new().with_utc_timestamps().with_colors(true)
-    .with_level(log::LevelFilter::Info)
-    .env()
-    .init()
-    .unwrap();
+        .with_level(log::LevelFilter::Info)
+        .env()
+        .init()
+        .unwrap();
 
     let frontend_index: PathBuf = get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
     let example_input: PathBuf = get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());

@@ -395,7 +395,6 @@ dependencies = [
 name = "cli"
 version = "0.1.0"
 dependencies = [
- "base64",
  "colored",
  "fastq2comp",
  "log",
@@ -1615,7 +1614,6 @@ version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-web",
- "base64",
  "fastq2comp",
  "futures",
  "log",

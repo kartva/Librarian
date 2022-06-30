@@ -1,7 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::path::PathBuf;
 use std::time::Duration;
-use base64::{decode_config, STANDARD};
 use colored::Colorize;
 
 use fastq2comp::extract_comp::{FASTQReader, run, SampleArgs};
@@ -43,10 +42,7 @@ static APP_USER_AGENT: &str = concat!(
 );
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() {
-    let args = Cli::from_args();
-	SimpleLogger::new().with_level(log::LevelFilter::Info).env().with_colors(true).without_timestamps().init().unwrap();
-
+async fn query(args: Cli) {
 	let client = reqwest::Client::builder()
 		.timeout(Duration::from_secs(60 * 5))
 		.user_agent(APP_USER_AGENT)
@@ -89,10 +85,11 @@ async fn main() {
 		eprintln!("error body: {}", res.text().await.unwrap());
 		panic!();
 	}
+	
 	let res = res.json::<Vec<Plot>>().await.expect("unable to extract JSON from server response. server may be down");
 
 	for res in res.into_iter() {
-		let r = decode_config(res.plot, STANDARD).expect("server response was malformed");
+		let r = res.plot;
 
 		let d =
 			res.filename +
@@ -113,4 +110,10 @@ async fn main() {
 		f.write_all(&r).unwrap();
 		println!("{} {:?}", "Created ".green(), p);
 	};
+}
+
+fn main () {
+	SimpleLogger::new().with_level(log::LevelFilter::Info).env().with_colors(true).without_timestamps().init().unwrap();
+	
+	query(Cli::from_args());
 }
