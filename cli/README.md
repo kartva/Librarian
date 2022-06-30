@@ -3,16 +3,16 @@
 Queries the Babraham server with supplied FASTQ files and downloads plots.
 
 ```
-Librarian CLI 0.1.0
-Utility CLI to query the Librarian server for plotting base compositions. Uncompresses .gz files when reading
+Librarian CLI 1.0.0
+A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files
+when reading.
 
 USAGE:
-    librarian [FLAGS] [OPTIONS] <input>...
+    librarian [OPTIONS] <input>...
 
 FLAGS:
-        --emit-compositions    Intended for debugging: shows the base compositions derived from files
-    -h, --help                 Prints help information
-    -V, --version              Prints version information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
 OPTIONS:
     -o, --output <outdir>    Output path
@@ -32,6 +32,6 @@ cargo install --git "https://github.com/DesmondWillowbrook/Librarian/" cli
 (
 export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
 export RUST_LOG=trace # other values are `debug`, `info`, `warn` and `error` - default is `info`
-./librarian -- ../frontend/example_inputs/* --emit-compositions
+cargo run --release --bin librarian -- ../frontend/example_inputs/*
 )
 ```

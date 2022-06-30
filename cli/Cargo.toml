@@ -1,7 +1,12 @@
 [package]
 name = "cli"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2018"
+authors = ["Kartavya Vashishtha <sendtokartavya@gmail.com>"]
+description = "A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files when reading."
+readme = "https://github.com/DesmondWillowbrook/Librarian#readme"
+repository = "https://github.com/DesmondWillowbrook/Librarian"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
