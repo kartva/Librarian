@@ -17,7 +17,10 @@ npm run build
 cd ..
 
 cd server
-LIBRARIAN_INDEX_PATH="../frontend/dist/"
-LIBRARIAN_PORT="8186"
+(
+export LIBRARIAN_INDEX_PATH="../frontend/dist/"
+export LIBRARIAN_PORT="8186"
+export LIBRARIAN_EXAMPLE_PATH="../frontend/example_inputs"
 cargo run --bin server --release
+)
 cd ..

@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
     let frontend_index: PathBuf =
         get_env_or_default("LIBRARIAN_INDEX_PATH", "../frontend/dist".into());
     let example_input: PathBuf =
-        get_env_or_default("LIBRARIAN_INPUT_PATH", "../frontend/example_inputs".into());
+        get_env_or_default("LIBRARIAN_EXAMPLE_PATH", "../frontend/example_inputs".into());
 
     HttpServer::new(move || {
         App::new()

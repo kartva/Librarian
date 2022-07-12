@@ -176,18 +176,14 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Download input files
     function download_files() {
-        let files = ['RNA.example.fastq.gz', 'RRBS.example.fastq.gz', 'WGBS.example.fastq.gz']; //files to downloads
-        for(let i = 0; i < files.length; i++){
-            let filename = 'LibrarianServer_'.concat(files[i]);
-            fetch("example_inputs/".concat(files[i])).then(function(t) {
-                return t.blob().then((b)=>{
-                    let a = document.createElement("a");
-                    a.href = URL.createObjectURL(b);
-                    a.setAttribute("download", filename);
-                    a.click();
-                });
+        fetch("example_inputs/example-inputs.tar.gz").then(function(t) {
+            return t.blob().then((b)=>{
+                let a = document.createElement("a");
+                a.href = URL.createObjectURL(b);
+                a.setAttribute("download", "example-inputs.tar.gz");
+                a.click();
             });
-        }
+        });
     }
  
 
