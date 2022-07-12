@@ -244,7 +244,7 @@ pub struct SampleArgs {
 impl Default for SampleArgs {
     fn default() -> Self {
         SampleArgs {
-            target_read_count: 100000,
+            target_read_count: 100_000,
             min_phred_score: 0,
             n_content: None,
             trimmed_length: 50,
