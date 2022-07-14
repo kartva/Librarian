@@ -20,7 +20,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 ## creating the pin board
 
-board <- board_folder("./scripts")
+board <- board_folder(".")
 
 
 ## loading the pinned model and coordinates
@@ -106,11 +106,11 @@ compositions_umap_results %>%
   coord_fixed() +
   guides(colour = guide_legend(override.aes = list(size=4))) + 
   scale_colour_manual(values = colours) +
-  theme(legend.title = element_blank(), aspect.ratio = 0.8) -> compositions_umap_results_plot
+  theme(text = element_text(family = "sans"), legend.title = element_blank(), aspect.ratio = 0.8) -> compositions_umap_results_plot
 
 rasterise(compositions_umap_results_plot, layers = 'Point', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"compositions-map.svg"), width = 7, height = 5, units = "in")
+ggsave(filename = file.path(args[2],"Compositions_map.svg"), width = 7, height = 5, units = "in", device = svg)
 
 
 ## Introducing a grid to the plot
@@ -181,11 +181,11 @@ umap_grid_tile_long %>%
   geom_point(data = test_coordinates, aes(UMAP1, UMAP2), fill = "black", colour = "#609CE1", shape = 1, size = 3, stroke = 1 ) +
   ggtitle("percent of library per tile") +
   facet_wrap(facets = "library_type", ncol = 5) +
-  theme(aspect.ratio = 0.8, panel.background = element_rect(fill = "#feffe9"), panel.grid = element_blank(), plot.title = element_text(size = 14, hjust = 0.5)) -> umap_grid_tile_long_plot
+  theme(text = element_text(family = "sans"), aspect.ratio = 0.8, panel.background = element_rect(fill = "#feffe9"), panel.grid = element_blank(), plot.title = element_text(size = 14, hjust = 0.5)) -> umap_grid_tile_long_plot
 
 rasterise(umap_grid_tile_long_plot, layers = 'Tile', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"probability-maps.svg"), width = 9, height = 7, units = "in")
+ggsave(filename = file.path(args[2],"Probability_maps.svg"), width = 9, height = 7, units = "in", device = svg)
 
 
 ## Pulling out probabilities for the test library
@@ -201,22 +201,21 @@ test_grid %>%
 
 
 
-## Plotting grid stats for test library
+## Plotting grid stats as heatmap
 
-test_percentage %>%
-  mutate(library_type = gsub("-Seq", "-seq", library_type)) %>% 
-  mutate(library_type = gsub("Bisulfite-seq", "BS-seq", library_type)) %>% 
-  mutate(library_type = gsub("DNase-Hypersensitivity", "DNase-HS", library_type)) %>%  
-  ggplot(aes(fct_rev(sample), percent, fill = library_type)) +
-  geom_col() +
-  scale_fill_manual(values = colours) +
-  coord_flip() +
+test_percentage %>% 
+  mutate(library_type = factor(library_type, levels = sort(unique(library_type), decreasing = TRUE))) %>% 
+  mutate(sample = gsub("sample_", "", sample)) %>% 
+  ggplot(aes(sample, library_type, fill = percent)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red") +
+  geom_text(aes(label = round(percent))) +
   theme_bw(base_size = 14) +
-  theme(axis.title = element_blank(), legend.position = "right", legend.title = element_blank()) -> test_percentage_plot
+  theme(text = element_text(family = "sans"), axis.title.y = element_blank(), legend.position = "none", panel.grid = element_blank()) -> test_percentage_heatmap
 
 sample_number <- nrow(test)
 
-ggsave(filename = file.path(args[2],"prediction-plot.svg"), width = 7, height = (3.5 + (sample_number * 0.1)), units = "in")
+ggsave(filename = file.path(args[2],"Prediction_heatmap.svg"), width = 7, height = (2 + (sample_number * 0.3)), units = "in", device = svg)
 
 
 
