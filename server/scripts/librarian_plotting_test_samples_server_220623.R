@@ -215,7 +215,7 @@ test_percentage %>%
 
 sample_number <- nrow(test)
 
-ggsave(filename = file.path(args[2],"Prediction_heatmap.svg"), width = 7, height = (2 + (sample_number * 0.3)), units = "in", device = svg)
+ggsave(filename = file.path(args[2],"Prediction_plot.svg"), width = 7, height = (2 + (sample_number * 0.3)), units = "in", device = svg)
 
 
 
