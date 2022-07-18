@@ -8,6 +8,7 @@ const wasm = import("../pkg/index").then((wasm) => {
         status.innerText = "Waiting on server response... May take up to 5 minutes."; //display waiting message
         status.classList.remove('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show'); //remove alert status if it exists
 
+        console.info("Extracting compositions.")
         wasmProcess.onmessage = function (e) {
             let result = e.data;
             
@@ -19,7 +20,10 @@ const wasm = import("../pkg/index").then((wasm) => {
                 throw new Error("Script panic'ed.");
             
             } else {
+                console.info("Extracted compositions.")
                 async function fetch_plot (compositions) {
+                    console.info("Fetching plots.")
+
                     //download and display plots
                     let data = await fetch ('api/plot_comp', {
                         headers:{
@@ -28,6 +32,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         body:JSON.stringify(compositions),
                         method:"POST"
                     });
+                    console.info("Fetched plots.")
 
                     loading(false); //remove loading part
 
