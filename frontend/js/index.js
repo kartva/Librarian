@@ -42,7 +42,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                             const filename = graph.filename;
                             const plot = graph.plot;
 
-                            let enc_data = btoa(data);
+                            let enc_data = btoa(plot);
                             let link = 'data:image/svg+xml;base64,' + enc_data;
                             let img = document.createElement('img');
                             img.src = link;
