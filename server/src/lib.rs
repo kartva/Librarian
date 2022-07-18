@@ -1,5 +1,5 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn};
+use log::{self, debug, log_enabled, trace, warn, error};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
@@ -92,6 +92,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
+        error!("Rscript failed with status {}", exit_status);
         return Err(PlotError::RExit);
     };
 
