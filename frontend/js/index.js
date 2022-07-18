@@ -181,11 +181,11 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Download input files
     function download_files() {
-        fetch("example_inputs/example-inputs.tar.gz").then(function(t) {
+        fetch("example_inputs/example-inputs.zip").then(function(t) {
             return t.blob().then((b)=>{
                 let a = document.createElement("a");
                 a.href = URL.createObjectURL(b);
-                a.setAttribute("download", "example-inputs.tar.gz");
+                a.setAttribute("download", "example-inputs.zip");
                 a.click();
             });
         });
