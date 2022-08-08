@@ -18,6 +18,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.min.js" integrity="sha512-UR25UO94eTnCVwjbXozyeVd6ZqpaAE9naiEUBK/A+QDbfSTQFhPGj5lOR6d8tsgbBk84Ggb5A3EkjsOgPRPcKA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js" integrity="sha512-3WaCYjK/lQuL0dVIRt1thLXr84Z/4Yppka6u40yEJT1QulYm9pCxguF6r8V84ndP5K03koI9hV1+zo/bUbgMtA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" integrity="sha512-Qlv6VSKh1gDKGoJbnyA5RMXYcvnpIqhO++MhIM2fStMcGT9i2T//tSwYFlcyoRRDcDZ+TYHpH8azBBCyhpSeqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="index.js"></script>
 
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -46,7 +49,7 @@
                     <div class="col-md-6">
                         <h4 class="font-weight-bold mb-4">Choose FASTQ file</h4>
                         <div class="custom-file mb-2">
-                            <input type="file" id="file-selector" data-browse-on-zone-click="true" accept=".fq,.fastq,.fq.gz,.fastq.gz" multiple>
+                            <input type="file" id="file_selector" data-browse-on-zone-click="true" accept=".fq,.fastq,.fq.gz,.fastq.gz" multiple>
                         </div>
 
                         <p class="mt-2">
@@ -59,7 +62,7 @@
                     </div>
 
                     <div class="col-md-2 d-flex align-items-center justify-content-center">
-                        <button class="btn btn-lg btn-primary" id="run" disabled>Run analysis</button>
+                        <button class="btn btn-lg btn-primary d-none" id="run">Run analysis</button>
                     </div>
                 </div>
                 <hr/>
@@ -73,7 +76,7 @@
 
                             <!-- Downolads the plots -->
                             <div class="col-6 col-md-4 d-flex align-items-center justify-content-end">
-                                <button type="button" id="download_plots" class="btn btn-lg btn-primary d-none">Downloads plots</button>
+                                <button type="button" id="download_plots" class="btn btn-lg btn-primary d-none">Download Plots</button>
                             </div>
                         </div>
                            
@@ -101,6 +104,8 @@
                         </div>
                     </div>
                 </div>
+                <br>
+                <br>
 
                 <!-- Interpretation -->
                 <div class="row mt-4 d-none" id="interpretation">

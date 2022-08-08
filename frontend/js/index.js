@@ -3,7 +3,7 @@ import Worker from "worker-loader!./worker.js";
 const wasm = import("../pkg/index").then((wasm) => {
     function processFile (files) {
         const wasmProcess = new Worker();
- 
+
         let status = document.getElementById('status');
         status.innerText = "Waiting on server response... May take up to 5 minutes."; //display waiting message
         status.classList.remove('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show'); //remove alert status if it exists
@@ -11,14 +11,14 @@ const wasm = import("../pkg/index").then((wasm) => {
         console.info("Extracting compositions.")
         wasmProcess.onmessage = function (e) {
             let result = e.data;
-            
+
             if (result.err) {
                 status.innerText = `Error encountered while processing:\n${result.err}`;
                 status.classList.add('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show');
                 loading(false); //remove loading part
 
                 throw new Error("Script panic'ed.");
-            
+
             } else {
                 console.info("Extracted compositions.")
                 async function fetch_plot (compositions) {
@@ -41,11 +41,23 @@ const wasm = import("../pkg/index").then((wasm) => {
                         status.innerText = '';
                         status.classList.add('d-none');
                         let graphs = await data.json();
-                        
+
+                        // Define plot legends and height
+                        let legend = {
+                            Compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by light green circles.',
+                            Probability_maps: 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.',
+                            Prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
+                        };
+                        let plot_height = {
+                            Compositions_map: '400px',
+                            Probability_maps: '400px',
+                            Prediction_plot: '250px'
+                        }
+
                         //display plots
-                        for (const graph of graphs) {
-                            const filename = graph.filename;
-                            const plot = graph.plot;
+                        for (let graph of graphs) {
+                            let filename = graph.filename;
+                            let plot = graph.plot;
 
                             let enc_data = btoa(plot);
                             let link = 'data:image/svg+xml;base64,' + enc_data;
@@ -53,18 +65,12 @@ const wasm = import("../pkg/index").then((wasm) => {
                             img.src = link;
                             img.id = filename; //set id as filename
                             img.classList.add('img-fluid','w-60', 'p-3', 'plot');
-                            img.style.height = '400px';
+
+                            let name = filename.split('.')[0];
+                            let label = legend[name];
+                            img.style.height = plot_height[name];
 
                             let p = document.createElement('p');
-                            let label;
-                            if (filename == 'Compositions_map.svg') {
-                                label = 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by light green circles.';
-                            }else if (filename == 'Probability_maps.svg') {
-                                label = 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.';
-                            }else if (filename == 'Prediction_plot.svg') {
-                                label = 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.';
-                            }
-
                             let textNode = document.createTextNode(label);
                             p.appendChild(textNode);
 
@@ -104,7 +110,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         throw data;
                     }
                 }
-                
+
                 let smaller_reads = result.out.map((e, i) => {e.idx = i + 1; return e;}).filter(e => e.reads_read < 100000);
 
                 if (smaller_reads.length != 0) {
@@ -119,7 +125,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                 fetch_plot(result.out);
             }
         }
- 
+
         wasmProcess.postMessage (files);
     }
 
@@ -155,25 +161,25 @@ const wasm = import("../pkg/index").then((wasm) => {
 
         //disabled the run button to avoid multiple launches
         document.getElementById('run').disabled = disabled;
-        document.getElementById('file-selector').disabled = disabled;
+        document.getElementById('file_selector').disabled = disabled;
     }
-   
+
 
     //run the tool
     function run() {
         setupPage() //prepare the page
-        const fileSelector = document.getElementById('file-selector');
+        const fileSelector = document.getElementById('file_selector');
         processFile(fileSelector.files);
     }
-   
+
     let runBtn = document.getElementById('run');
-   
-    document.getElementById('file-selector').addEventListener('change', (e) => {
-        runBtn.disabled = false;
+
+    document.getElementById('file_selector').addEventListener('change', (e) => {
+        runBtn.classList.remove('d-none');
     }) //on file change
-   
+
     runBtn.addEventListener('click', run); //on run button
- 
+
     //add event listener on downloads buttons (files and plots)
     document.getElementById('download_files').addEventListener('click', download_files);
     document.getElementById('download_plots').addEventListener('click', download_plots);
@@ -190,19 +196,38 @@ const wasm = import("../pkg/index").then((wasm) => {
             });
         });
     }
- 
 
-    // Download output plots
+
+    // Download output plots in a .zip
     function download_plots() {
         let imgs = document.getElementsByClassName('plot');
- 
+        let zip = new JSZip();
+        let count = 0;
+        let zipFilename = "Librarian_plots.zip";
+
+        let plots = [];
         for (let img of imgs){
-            let link = document.createElement('a');
-            link.href = img.src;
-            link.download = img.id; //set filename as id
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            let file = {}
+            file['name'] = img.id;
+            file['url'] = img.src;
+            plots.push(file);
         }
+
+        plots.forEach(function(url){
+            var filename = url['name'];
+            // loading a file and add it in a zip file
+            JSZipUtils.getBinaryContent(url['url'], function (err, data) {
+                if(err) {
+                    throw err; // or handle the error
+                }
+                zip.file(filename, data, {binary:true});
+                count++;
+                if (count == plots.length) {
+                    zip.generateAsync({type:'blob'}).then(function(content) {
+                        saveAs(content, zipFilename);
+                    });
+                }
+            });
+        });
     }
 })
