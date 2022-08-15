@@ -46,7 +46,7 @@ const wasm = import("../pkg/index").then((wasm) => {
 
                         // Define plot legends and height
                         let legend = {
-                            Compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by light green circles.',
+                            Compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by black circles.',
                             Probability_maps: 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.',
                             Prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
                         };
@@ -81,7 +81,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                             p.appendChild(textNode);
 
                             let div = document.createElement('div');
-                            div.classList.add('h-100');
+                            div.classList.add('h-100', 'col-md-12');
                             if(name == 'Prediction_plot'){
                                 div.classList.add('mt-5');
                             }

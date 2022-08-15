@@ -44,7 +44,7 @@
             </div>
 
             <div class="container">
-                <div class="row">
+                <div class="row mb-4">
                     <!-- Choose files -->
                     <div class="col-md-6">
                         <h4 class="font-weight-bold mb-4">Choose FASTQ file</h4>
@@ -66,10 +66,9 @@
                     </div>
                 </div>
                 <hr/>
-                <br>
 
                 <!-- Results -->
-                <div class="row mt-4 d-none" id="result">
+                <div class="row my-4 d-none" id="result">
                     <div class="col-md-12">
                         <div class="row mb-4">
                             <h4 class="font-weight-bold col-12 col-md-8">Results</h4>
@@ -95,7 +94,7 @@
                                 </div>
                             </div>
 
-                            <div id="samples_table" class="row col-md-12 d-none">
+                            <div id="samples_table" class="row col-md-12 mb-4 d-none">
                                 <table>
                                     <thead>
                                         <tr>
@@ -106,25 +105,17 @@
                                     <tbody id="samples_tbody"></tbody>
                                 </table>
                             </div>
-                            <br>
 
                             <!-- Display the generated plots -->
                             <div class="row" id="plots"></div>
                         </div>
                     </div>
                 </div>
-                <br>
-                <br>
 
                 <!-- Interpretation -->
-                <div class="row mt-4 d-none" id="interpretation">
-                    <div class="col-md-12">
-                        <div class="row mb-4">
-                            <h4 class="font-weight-bold col-12 col-md-8">Interpretation</h4>
-                            <p class="col-12 col-md-8">Some regions on the map are very specific to a certain library type, others are more mixed. Therefore, for some test libraries the results will be much clearer than for others. The different plots are intended to provide a good overview of how similar the test library is to published data. The cause of any deviations should be inspected; the interpretation will be different depending on how characteristic the composition signature of the library type and how far off the projection of the test sample is.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="row my-5 d-none col-md-12" id="interpretation">
+                    <h4 class="font-weight-bold">Interpretation</h4>
+                    <p>Some regions on the map are very specific to a certain library type, others are more mixed. Therefore, for some test libraries the results will be much clearer than for others. The different plots are intended to provide a good overview of how similar the test library is to published data. The cause of any deviations should be inspected; the interpretation will be different depending on how characteristic the composition signature of the library type and how far off the projection of the test sample is.</p>
                 </div>
             </div>
         </div>
