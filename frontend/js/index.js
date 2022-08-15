@@ -49,10 +49,10 @@ const wasm = import("../pkg/index").then((wasm) => {
                             Prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
                         };
                         let plot_height = {
-                            Compositions_map: '400px',
-                            Probability_maps: '400px',
-                            Prediction_plot: '250px'
-                        }
+                            Compositions_map: '550px',
+                            Probability_maps: '600px',
+                            Prediction_plot: '500px'
+                        };
 
                         //display plots
                         for (let graph of graphs) {
@@ -64,21 +64,33 @@ const wasm = import("../pkg/index").then((wasm) => {
                             let img = document.createElement('img');
                             img.src = link;
                             img.id = filename; //set id as filename
-                            img.classList.add('img-fluid','w-60', 'p-3', 'plot');
+                            img.classList.add('img-fluid', 'mx-auto', 'd-block');
 
                             let name = filename.split('.')[0];
-                            let label = legend[name];
                             img.style.height = plot_height[name];
 
+                            let label = legend[name];
                             let p = document.createElement('p');
                             let textNode = document.createTextNode(label);
+                            if(name == 'Prediction_plot'){
+                                p.classList.add('mt-4');
+                            }
+
                             p.appendChild(textNode);
 
                             let div = document.createElement('div');
-                            div.classList.add('col-md-6');
+                            div.classList.add('h-100');
+                            if(name == 'Prediction_plot'){
+                                div.classList.add('mt-5');
+                            }
+
                             div.appendChild(img);
                             div.appendChild(p);
                             document.getElementById('plots').appendChild(div);
+
+                            let hr = document.createElement('hr');
+                            hr.classList.add('w-50');
+                            document.getElementById('plots').appendChild(hr);
                         }
 
                         document.getElementById('download_plots').classList.remove('d-none'); //display the downloads button
