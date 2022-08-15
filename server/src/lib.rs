@@ -4,6 +4,7 @@ use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
+    fmt::Write as _,
 };
 use thiserror::Error;
 
@@ -41,7 +42,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     let mut input = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
-        input += &format!("sample_{:02}\t", i + 1);
+        write!(&mut input, "sample_{:02}\t", i + 1).unwrap(); // this unwrap never fails
         c.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
