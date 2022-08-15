@@ -96,9 +96,10 @@ compositions_umap_results %>%
   mutate(lib_type = gsub("-Seq", "-seq", lib_type)) %>% 
   mutate(lib_type = gsub("Bisulfite-seq", "BS-seq", lib_type)) %>% 
   mutate(lib_type = gsub("DNase-Hypersensitivity", "DNase-HS", lib_type)) %>% 
-  ggplot(aes(UMAP1,UMAP2, colour = lib_type, group = SRR)) +
-  geom_point(size = 1.5) +
-  geom_point(data = test_coordinates, aes(UMAP1, UMAP2, group = sample), colour = "#7FFF00", shape = 1, size = 4, stroke = 2) +
+  ggplot(aes(UMAP1,UMAP2)) +
+  geom_point(size = 1.5, aes(colour = lib_type, group = SRR)) +
+  geom_point(data = test_coordinates, aes(UMAP1, UMAP2), colour = "black", shape = 1, size = 5, stroke = 3) +
+  geom_text(data = test_coordinates, aes(UMAP1, UMAP2, label = gsub("sample_","", sample)), size = 6, nudge_x = 1, nudge_y = 1) +
   theme_bw(base_size = 14) +
   theme(legend.title = element_text(size = 12)) +
   #ylim(-10, 10) +
@@ -110,7 +111,7 @@ compositions_umap_results %>%
 
 rasterise(compositions_umap_results_plot, layers = 'Point', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"Compositions_map.svg"), width = 7, height = 5, units = "in", device = svg)
+ggsave(filename = file.path(args[2],"Compositions_map.svg"), width = 8, height = 6, units = "in", device = svg)
 
 
 ## Introducing a grid to the plot
@@ -173,19 +174,20 @@ umap_grid_tile_long %>%
   mutate(library_type = gsub("-Seq", "-seq", library_type)) %>% 
   mutate(library_type = gsub("Bisulfite-seq", "BS-seq", library_type)) %>% 
   mutate(library_type = gsub("DNase-Hypersensitivity", "DNase-HS", library_type)) %>% 
-  ggplot(aes(UMAP1_grid,UMAP2_grid, fill = percentage)) +
+  ggplot(aes(UMAP1_grid,UMAP2_grid)) +
   theme_bw(base_size = 14) +
   theme(legend.title = element_blank(), axis.title = element_blank(), panel.background = element_rect(fill = "#faebdd"), plot.title = element_text(size = 14, hjust = 0.5)) +
-  geom_tile() +
+  geom_tile(aes(fill = percentage)) +
   scale_fill_viridis_c(option = "inferno", direction = -1) +
   geom_point(data = test_coordinates, aes(UMAP1, UMAP2), fill = "black", colour = "#609CE1", shape = 1, size = 3, stroke = 1 ) +
+  geom_text(data = test_coordinates, aes(x=UMAP1, y=UMAP2, label = gsub("sample_","", sample)), size = 3, nudge_x = 2, nudge_y = 1) +
   ggtitle("percent of library per tile") +
   facet_wrap(facets = "library_type", ncol = 5) +
   theme(text = element_text(family = "sans"), aspect.ratio = 0.8, panel.background = element_rect(fill = "#feffe9"), panel.grid = element_blank(), plot.title = element_text(size = 14, hjust = 0.5)) -> umap_grid_tile_long_plot
 
 rasterise(umap_grid_tile_long_plot, layers = 'Tile', dpi = 300) -> compositions_umap_results_plot
 
-ggsave(filename = file.path(args[2],"Probability_maps.svg"), width = 9, height = 7, units = "in", device = svg)
+ggsave(filename = file.path(args[2],"Probability_maps.svg"), width = 12, height = 8, units = "in", device = svg)
 
 
 ## Pulling out probabilities for the test library
@@ -215,7 +217,7 @@ test_percentage %>%
 
 sample_number <- nrow(test)
 
-ggsave(filename = file.path(args[2],"Prediction_plot.svg"), width = 7, height = (2 + (sample_number * 0.3)), units = "in", device = svg)
+ggsave(filename = file.path(args[2],"Prediction_plot.svg"), width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = svg)
 
 
 
