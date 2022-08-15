@@ -32,6 +32,15 @@ cargo install --git "https://github.com/DesmondWillowbrook/Librarian/" cli
 (
 export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
 export RUST_LOG=trace # other values are `debug`, `info`, `warn` and `error` - default is `info`
-cargo run --release --bin librarian -- ../frontend/example_inputs/*
+cargo run --release --bin librarian -- PATH_TO_INPUT
+)
+```
+
+For example, to pass the example files, first uncompress with `unzip frontend/example_inputs` and then run 
+```bash
+(
+export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
+export RUST_LOG=trace # other values are `debug`, `info`, `warn` and `error` - default is `info`
+cargo run --release --bin librarian -- frontend/example_inputs/example_inputs/*
 )
 ```
