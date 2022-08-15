@@ -40,6 +40,8 @@ const wasm = import("../pkg/index").then((wasm) => {
                         //remove status to display results
                         status.innerText = '';
                         status.classList.add('d-none');
+                        document.getElementById('samples_table').classList.remove('d-none');
+
                         let graphs = await data.json();
 
                         // Define plot legends and height
@@ -64,7 +66,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                             let img = document.createElement('img');
                             img.src = link;
                             img.id = filename; //set id as filename
-                            img.classList.add('img-fluid', 'mx-auto', 'd-block');
+                            img.classList.add('plot', 'img-fluid', 'mx-auto', 'd-block');
 
                             let name = filename.split('.')[0];
                             img.style.height = plot_height[name];
@@ -98,14 +100,10 @@ const wasm = import("../pkg/index").then((wasm) => {
 
                         // Fill the samples table
                         let res = result['out'];
-                        let table = document.getElementById("samples_table");
-
-                        let row = table.insertRow();
-                        row.insertCell(0).innerHTML = 'Sample name';
-                        row.insertCell(1).innerHTML = 'Sample number';
+                        let table = document.getElementById('samples_tbody');
 
                         for (let i = 0; i < res.length; i++){
-                            row = table.insertRow();
+                            let row = table.insertRow();
                             let number = res[i]['idx'];
                             if(number < 10){
                                 number = '0' + number;
@@ -157,9 +155,10 @@ const wasm = import("../pkg/index").then((wasm) => {
             plots.removeChild(plots.firstChild);
         }
 
-        //remove previous table
-        let table = document.getElementById("samples_table");
-        table.innerHTML = '';
+        document.getElementById('samples_table').classList.add('d-none');
+        let table = document.getElementById('samples_table');
+        let row = table.getElementsByTagName('tbody')[0];
+        row.innerHTML = '';
     }
 
 
@@ -212,6 +211,8 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Download output plots in a .zip
     function download_plots() {
+        console.log("button click");
+        
         let imgs = document.getElementsByClassName('plot');
         let zip = new JSZip();
         let count = 0;
@@ -224,6 +225,8 @@ const wasm = import("../pkg/index").then((wasm) => {
             file['url'] = img.src;
             plots.push(file);
         }
+        console.log('plots');
+        console.log(plots);
 
         plots.forEach(function(url){
             var filename = url['name'];

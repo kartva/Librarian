@@ -2,7 +2,18 @@
 	padding-right: 10px;
 }
 
+table {
+	text-align:center;
+	margin:auto;
+}
+
+thead tr td { 
+	background-color: #e9ecef;
+}
+
 table, th, td {
 	border: 1px solid black;
 	border-collapse: collapse;
+	padding-left: 10px;
+	padding-right: 10px;
 }
