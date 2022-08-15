@@ -95,7 +95,7 @@ async fn query(args: Cli) {
 
     let req = client.post(&url).json(&comps).send().await;
 
-    let res = req.expect("Request to server failed.");
+    let res = req.map_err(|e| {eprintln!("\n{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
     if !res.status().is_success() {
         eprintln!(
             "non-success response {} received, terminating",
