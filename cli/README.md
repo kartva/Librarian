@@ -3,7 +3,7 @@
 Queries the Babraham server with supplied FASTQ files and downloads plots.
 
 ```
-Librarian CLI 1.0.0
+Librarian CLI 1.0.3
 A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files
 when reading.
 

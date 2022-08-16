@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-version = "1.0.0"
+version = "1.0.3"
 edition = "2018"
 authors = ["Kartavya Vashishtha <sendtokartavya@gmail.com>"]
 description = "A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files when reading."
@@ -16,6 +16,5 @@ fastq2comp = { path = "../fastq2comp"}
 structopt = "0.3"
 log = "0.4"
 colored = "2.0"
-time = { version = "0.3", features = ["formatting"] }
 server = {path = "../server"}
 simple_logger = "2.1.0"

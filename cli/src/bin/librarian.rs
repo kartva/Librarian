@@ -11,39 +11,42 @@ use simple_logger::SimpleLogger;
 use std::env::var;
 use std::io::{BufReader, Write};
 
-use time::format_description::parse;
-use time::OffsetDateTime;
-
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Librarian CLI",
     about = "A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files when reading.",
-
 )]
 struct Cli {
     /// List of input files
     #[structopt(required = true, parse(from_os_str))]
     pub input: Vec<PathBuf>,
 
-    /// Output path
-    #[structopt(short = "o", long = "output", parse(from_os_str))]
-    pub outdir: Option<PathBuf>,
+    /// Prefix to append to output files (eg. `output_dir/` or `name`)
+    #[structopt(short, long, default_value = "librarian")]
+    pub prefix: String,
+
+    /// Suppresses all output except errors
+    #[structopt(short, long)]
+    pub quiet: bool,
 }
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 fn main() {
+    let mut args = Cli::from_args();
+    args.prefix += "_"; // so the prefix "librarian" produces files like "librarian_compositions_map"
+
     SimpleLogger::new()
-        .with_level(log::LevelFilter::Info)
+        .with_level (if args.quiet {log::LevelFilter::Error} else {log::LevelFilter::Info})
         .env()
         .with_colors(true)
         .without_timestamps()
         .init()
-        .unwrap();
+        .expect("Couldn't initialize logger");
 
-    query(Cli::from_args());
+    query(args);
 }
 
 fn query(args: Cli) {
@@ -54,16 +57,12 @@ fn query(args: Cli) {
         .unwrap();
     let mut comps = Vec::with_capacity(args.input.len());
 
-    info!(
-        "{}",
-        "Requests may take up to 5 minutes to process.".green()
-    );
-
     for p in args.input {
-        let p = p.canonicalize().unwrap();
+        info!("Processing {p:?}");
+
         let f = File::open(&p);
         if let Err(e) = f {
-            error!("Couldn't open {:?} for reading due to error {}", p, e);
+            error!("Couldn't open {:?} (canonicalized: {:?}) for reading due to error {}", p, p.canonicalize(), e);
             continue;
         }
         let f = f.unwrap();
@@ -92,15 +91,21 @@ fn query(args: Cli) {
         "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp".to_string()
     });
 
+    info!("Sending data to server at https://www.bioinformatics.babraham.ac.uk");
+    info!(
+        "{}",
+        "Requests may take up to 5 minutes to process.".green()
+    );
+
     let req = client.post(&url).json(&comps).send();
 
-    let res = req.map_err(|e| {eprintln!("\n{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
+    let res = req.map_err(|e| {error!("{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
     if !res.status().is_success() {
-        eprintln!(
+        error!(
             "non-success response {} received, terminating",
             res.status().to_string().red()
         );
-        eprintln!("error body: {}", res.text().unwrap());
+        error!("error body: {}", res.text().unwrap());
         panic!();
     }
 
@@ -108,23 +113,12 @@ fn query(args: Cli) {
         .json::<Vec<Plot>>()
         .expect("unable to extract JSON from server response. server may be down");
 
-    for res in res.into_iter() {
+    for mut res in res.into_iter() {
         let r = res.plot;
 
-		let (root, ext) = res.filename.split_once('.').expect("filename did not have . at all");
-        let d = root.to_string() + "-"
-            + &OffsetDateTime::now_utc()
-                .format(&parse("[ year ]-[ month ]-[ day ]-[ hour ]-[ minute ]").unwrap())
-                .unwrap()
-            + "." + ext;
-
-        let p = match &args.outdir {
-            None => PathBuf::from(d),
-            Some(ref o) => {
-                let mut p = PathBuf::from(o);
-                p.push(d);
-                p
-            }
+        let p = {
+            res.filename.insert_str(0, &args.prefix);
+            PathBuf::from(res.filename)
         };
         let mut f = OpenOptions::new()
             .create(true)
@@ -132,6 +126,6 @@ fn query(args: Cli) {
             .open(&p)
             .unwrap();
         f.write_all(r.as_bytes()).unwrap();
-        println!("{} {:?}", "Created ".green(), p);
+        info!("{} {:?}", "Created".green(), p);
     }
 }

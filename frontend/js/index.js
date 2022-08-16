@@ -46,14 +46,14 @@ const wasm = import("../pkg/index").then((wasm) => {
 
                         // Define plot legends and height
                         let legend = {
-                            Compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by black circles.',
-                            Probability_maps: 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.',
-                            Prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
+                            compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by black circles.',
+                            probability_maps: 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.',
+                            prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
                         };
                         let plot_height = {
-                            Compositions_map: '550px',
-                            Probability_maps: '600px',
-                            Prediction_plot: '500px'
+                            compositions_map: '550px',
+                            probability_maps: '600px',
+                            prediction_plot: '500px'
                         };
 
                         //display plots
@@ -74,7 +74,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                             let label = legend[name];
                             let p = document.createElement('p');
                             let textNode = document.createTextNode(label);
-                            if(name == 'Prediction_plot'){
+                            if(name == 'prediction_plot'){
                                 p.classList.add('mt-4');
                             }
 
@@ -82,7 +82,7 @@ const wasm = import("../pkg/index").then((wasm) => {
 
                             let div = document.createElement('div');
                             div.classList.add('h-100', 'col-md-12');
-                            if(name == 'Prediction_plot'){
+                            if(name == 'prediction_plot'){
                                 div.classList.add('mt-5');
                             }
 
