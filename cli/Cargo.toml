@@ -4,6 +4,7 @@ version = "1.0.3"
 edition = "2018"
 authors = ["Kartavya Vashishtha <sendtokartavya@gmail.com>"]
 description = "A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files when reading."
+license = "GPL-3.0"
 readme = "https://github.com/DesmondWillowbrook/Librarian#readme"
 repository = "https://github.com/DesmondWillowbrook/Librarian"
 
