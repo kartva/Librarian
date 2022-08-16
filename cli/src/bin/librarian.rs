@@ -46,9 +46,8 @@ fn main() {
     query(Cli::from_args());
 }
 
-#[tokio::main(flavor = "current_thread")]
-async fn query(args: Cli) {
-    let client = reqwest::Client::builder()
+fn query(args: Cli) {
+    let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(60 * 5))
         .user_agent(APP_USER_AGENT)
         .build()
@@ -93,7 +92,7 @@ async fn query(args: Cli) {
         "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp".to_string()
     });
 
-    let req = client.post(&url).json(&comps).send().await;
+    let req = client.post(&url).json(&comps).send();
 
     let res = req.map_err(|e| {eprintln!("\n{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
     if !res.status().is_success() {
@@ -101,13 +100,12 @@ async fn query(args: Cli) {
             "non-success response {} received, terminating",
             res.status().to_string().red()
         );
-        eprintln!("error body: {}", res.text().await.unwrap());
+        eprintln!("error body: {}", res.text().unwrap());
         panic!();
     }
 
     let res = res
         .json::<Vec<Plot>>()
-        .await
         .expect("unable to extract JSON from server response. server may be down");
 
     for res in res.into_iter() {
