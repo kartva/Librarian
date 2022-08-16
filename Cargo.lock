@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "frontend"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "fastq2comp",
  "gloo",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "server"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "actix-files",
  "actix-web",
