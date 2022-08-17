@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2018"
 authors = ["Kartavya Vashishtha <sendtokartavya@gmail.com>"]
 description = "A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files when reading."

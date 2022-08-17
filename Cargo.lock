@@ -406,7 +406,7 @@ dependencies = [
 
 [[package]]
 name = "cli"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "colored",
  "fastq2comp",
