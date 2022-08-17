@@ -343,7 +343,7 @@ impl FASTQRead {
         // Check for numbers in reads
         if self.check_colorspace(seq) {
             panic!(
-                "Found numbers in reads - this is probably colorspace\n{:?}",
+                "Found numbers in reads - this doesn't look like a fastq file\n{:?}",
                 (seq, quals)
             );
         }
