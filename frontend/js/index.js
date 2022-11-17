@@ -48,7 +48,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         let legend = {
                             compositions_map: 'UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by black circles.',
                             probability_maps: 'This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.',
-                            prediction_plot: 'For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.'
+                            prediction_plot: 'For each projected test library, the location on the Reference/Probability Map is determined. This plot shows how published library types are represented at the same location.'
                         };
                         let plot_height = {
                             compositions_map: '550px',
