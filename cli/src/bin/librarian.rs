@@ -50,11 +50,6 @@ fn main() {
 }
 
 fn query(args: Cli) {
-    let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(60 * 5))
-        .user_agent(APP_USER_AGENT)
-        .build()
-        .unwrap();
     let mut comps = Vec::with_capacity(args.input.len());
 
     for p in args.input {
@@ -96,6 +91,12 @@ fn query(args: Cli) {
         "{}",
         "Requests may take up to 5 minutes to process.".green()
     );
+
+    let client = reqwest::blocking::Client::builder()
+    .timeout(Duration::from_secs(60 * 5))
+    .user_agent(APP_USER_AGENT)
+    .build()
+    .unwrap();
 
     let req = client.post(&url).json(&comps).send();
 
