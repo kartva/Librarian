@@ -275,7 +275,7 @@ impl FASTQRead {
         //Skips the 1st and 3rd line resp. in 4 lines of input
         for s in [&mut self.seq, &mut self.quals].iter_mut() {
             **s = match reader.lines().nth(1) {
-                Some(n) => n.expect("Error reading line. Make sure UTF-8 input is supported"),
+                Some(n) => n.expect("Input doesn't seem to be valid UTF-8. If it is an archive, it may not have the correct extensions (.fastq.gz)"),
                 None => return None,
             }
         }
