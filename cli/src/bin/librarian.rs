@@ -73,7 +73,12 @@ fn query(args: Cli) {
         let target_len = SampleArgs::default().target_read_count;
 
         if l < target_len {
-            warn!("Fewer valid reads ({l}) in sample {p:?} than recommended (100,000) (this may be due to reads being filtered out due to being shorter than 50 bases)")
+            warn!("Fewer valid reads ({l}) in sample {p:?} than recommended (100,000) (this may be due to reads being filtered out due to being shorter than 50 bases)");
+
+            if l == 0 {
+                error!("No valid reads found, exiting.");
+                return
+            }
         }
 
         comps.push(comp);
