@@ -1,4 +1,4 @@
-name: Generate Binaries
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -9,10 +9,11 @@ env:
 jobs:
   Build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-    - uses: actions/checkout@v2
-
+    
     - name: Show toolchain
       run: rustup show
 
@@ -22,14 +23,15 @@ jobs:
     - name: Build
       run: cargo build --release --target=x86_64-unknown-linux-musl --bin librarian --bin server
       
-    - uses: actions/upload-artifact@v2
-      name: Save Librarian cli
+    - name: Create binary tar archive
+      run: tar --create --gzip --file=librarian_binaries.tar.gz target/x86_64-unknown-linux-musl/release/librarian target/x86_64-unknown-linux-musl/release/server
+      
+    - name: Create gzip for CLI
+      run: gzip target/x86_64-unknown-linux-musl/release/librarian
+        
+    - uses: ncipollo/release-action@v1.12.0
+      name: Generate draft release
       with:
-        name: librarian-cli
-        path: target/x86_64-unknown-linux-musl/release/librarian
-
-    - uses: actions/upload-artifact@v2
-      name: Save server
-      with:
-        name: librarian-server
-        path: target/x86_64-unknown-linux-musl/release/server
+        artifacts: librarian_binaries.tar.gz, target/x86_64-unknown-linux-musl/release/librarian.gz
+        artifactErrorsFailBuild: true
+        draft: true
