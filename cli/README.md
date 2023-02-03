@@ -1,9 +1,9 @@
 # Librarian Query CLI
 
-Queries the Babraham server with supplied FASTQ files and downloads plots.
+Queries the Babraham server (or your own!) with supplied FASTQ files and downloads plots.
 
 ```
-Librarian CLI 1.0.3
+Librarian CLI
 A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files
 when reading.
 
@@ -39,12 +39,11 @@ cargo install --git "https://github.com/DesmondWillowbrook/Librarian/" cli
 ```bash
 (
 export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
-export RUST_LOG=trace # other values are `debug`, `info`, `warn` and `error` - default is `info`
-cargo run --release --bin librarian -- PATH_TO_INPUT
+librarian example.fastq.hz
 )
 ```
 
-For example, to pass the example files, first uncompress with `unzip example_inputs.zip` in `../frontend/example_inputs/` and then run 
+To debug the client:
 ```bash
 (
 export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
