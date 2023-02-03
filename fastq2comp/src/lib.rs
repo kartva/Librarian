@@ -43,13 +43,13 @@ pub mod io_utils {
     /// And return writer to stdout if PathBuf not given
     pub fn get_writer(output: &Option<PathBuf>) -> Box<dyn Write> {
         match output {
-            Some(file) => Box::new(OpenOptions::new().append(true).open(&file).unwrap_or_else(
+            Some(file) => Box::new(OpenOptions::new().append(true).open(file).unwrap_or_else(
                 |error| {
                     if error.kind() == ErrorKind::NotFound {
                         OpenOptions::new()
                             .create(true)
                             .write(true)
-                            .open(&file)
+                            .open(file)
                             .expect("Problem creating the file!")
                     } else {
                         panic!("Problem opening the file: {:?}", error);
@@ -65,7 +65,7 @@ use serde::{Deserialize, Serialize};
 
 /// Represents a column of base composition data.
 /// Contains base composition along with position information.
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[allow(non_snake_case)]
 pub struct BaseCompCol {
     pub pos: usize,
@@ -74,7 +74,7 @@ pub struct BaseCompCol {
 
 /// Represents a column of base composition.
 /// Used to represent raw state and percentage state as well.
-#[derive(Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Copy, Clone)]
 #[allow(non_snake_case)]
 pub struct BaseCompColBases {
     pub A: usize,
