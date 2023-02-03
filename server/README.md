@@ -29,7 +29,9 @@ cd Librarian
 ```bash
 ./run.sh
 ```
+
 Alternatively, in case you haven't made any changes to the frontend, you can just run the server binary without rebuilding the frontend.
+
 ```
 cd server
 cargo run --release

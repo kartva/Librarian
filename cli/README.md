@@ -25,6 +25,10 @@ ARGS:
 
 CLI binaries can be found in the [Github Releases](https://github.com/DesmondWillowbrook/Librarian/releases) section of the repository.
 
+The released binaries are statically linked with `musl`, so there shouldn't be too much in the way of system requirements for the CLI except running Linux.
+
+The server has more complex installation requirements, which can be found on the [server README](../server/README.md). 
+
 ## Install from source
 Requires a recent version of the [Rust](https://rust-lang.org) toolchain. 
 ```bash
