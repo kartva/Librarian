@@ -20,12 +20,12 @@ jobs:
       run: rustup target add x86_64-unknown-linux-musl
 
     - name: Build
-      run: cargo build --release --verbose --target=x86_64-unknown-linux-musl --bin librarian --bin server
+      run: cargo build --release --target=x86_64-unknown-linux-musl --bin librarian --bin server
       
     - uses: actions/upload-artifact@v2
       name: Save Librarian cli
       with:
-        name: librarian
+        name: librarian-cli
         path: target/x86_64-unknown-linux-musl/release/librarian
 
     - uses: actions/upload-artifact@v2
