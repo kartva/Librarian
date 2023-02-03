@@ -21,6 +21,10 @@ ARGS:
     <input>...    List of input files
 ```
 
+## Installation
+
+CLI binaries can be found in the [Github Releases](https://github.com/DesmondWillowbrook/Librarian/releases) section of the repository.
+
 ## Install from source
 Requires a recent version of the [Rust](https://rust-lang.org) toolchain. 
 ```bash
