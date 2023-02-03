@@ -1,4 +1,7 @@
 # Server
+
+The server runs the data processing and visualization code.
+
 Serves the webpages in `frontend/dist` along with running backend services.
 ## Setup:
 

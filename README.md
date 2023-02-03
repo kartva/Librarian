@@ -1,6 +1,8 @@
 <center>
 <img src="frontend/static/favicon.ico" />
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/DesmondWillowbrook/Librarian?display_name=release)
+
 # Librarian 
 </center>
 
@@ -27,6 +29,8 @@ To that end, Librarian produces several plots to help identify library types. Fo
 > How to interpret: Some regions on the map are very specific to a certain library type, others are more mixed. Therefore, for some test libraries the results will be much clearer than for others. The different plots are intended to provide a good overview of how similar the test library is to published data. The cause of any deviations should be inspected; the interpretation will be different depending on how characteristic the composition signature of the library type and how far off the projection of the test sample is.
 
 You can try Librarian at the [Babraham Institute website](https://www.bioinformatics.babraham.ac.uk/librarian/), run a [tool to query samples from the command-line](cli/README.md), or [set up the server yourself](server/README.md).
+
+**Download releases [here](https://github.com/DesmondWillowbrook/Librarian/releases).**
 
 ## Folder Structure
 - `frontend` contains code for the website, which consists of the webpage and WebAssembly code responsible for extracting base compositions from given files. Extracted base compositions are sent to the server for plotting.
