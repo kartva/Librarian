@@ -107,7 +107,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             e.ok()
         })
         .filter_map(|e| {
-            let filename = e.file_name().to_string_lossy().to_owned().to_string();
+            let filename = e.file_name().to_string_lossy().to_string();
             let f = File::open(e.path());
             if f.is_err() {
                 warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
