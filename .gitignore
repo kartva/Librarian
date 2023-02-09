@@ -5,4 +5,3 @@ frontend/wasm-pack.log
 frontend/dist
 .vscode
 frontend/example_inputs/example_inputs
-server/scripts/Librarian
