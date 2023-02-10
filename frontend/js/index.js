@@ -207,6 +207,25 @@ const wasm = import("../pkg/index").then((wasm) => {
             });
         });
     }
+    
+    
+    //Convert HTML table into csv file
+    function table_to_csv(id) {
+      let csv_data = [];
+        // Get each row data
+        let rows = document.getElementById(id).getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+          let cols = rows[i].querySelectorAll('td,th');
+          let csv_row = [];
+          for (let j = 0; j < cols.length; j++) {
+            csv_row.push(cols[j].innerHTML);
+          }
+          csv_data.push(csv_row.join(","));
+        }
+        
+        csv_data = csv_data.join('\n');
+        return csv_data; 
+    }
 
 
     // Download output plots in a .zip
@@ -225,9 +244,11 @@ const wasm = import("../pkg/index").then((wasm) => {
             file['url'] = img.src;
             plots.push(file);
         }
-        console.log('plots');
-        console.log(plots);
-
+        
+        //Retrieve samples assignment table
+        let csv_data = table_to_csv('samples_table');
+        zip.file('samples_assignment.csv', csv_data, {binary:true});
+        
         plots.forEach(function(url){
             var filename = url['name'];
             // loading a file and add it in a zip file
