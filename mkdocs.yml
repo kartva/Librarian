@@ -1,0 +1,29 @@
+site_name: Librarian
+site_url: 
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Installation: installation.md
+  - Dos and Don'ts: dos_and_donts.md
+  - FAQs: faqs.md
+  - Citation: citation.md
+  
+  
+
+
+theme: 
+  name: material
+  palette:
+    primary: teal
+  logo: images/favicon.ico
+  favicon: images/favicon.ico
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+    - toc.integrate
+    - navigation.top
