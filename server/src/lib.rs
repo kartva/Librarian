@@ -30,20 +30,27 @@ pub struct Plot {
     pub filename: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Sample {
+    #[serde(flatten)]
+    pub comp: BaseComp,
+    pub name: String
+}
+
 impl std::fmt::Debug for Plot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.filename.fmt(f)
     }
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
+pub fn plot_comp(comp: Vec<Sample>) -> Result<Vec<Plot>, PlotError> {
     assert!(!comp.is_empty());
 
     let mut input = String::new();
 
-    for (i, c) in comp.into_iter().enumerate() {
-        write!(&mut input, "sample_{:02}\t", i + 1).unwrap(); // this unwrap never fails
-        c.lib
+    for c in comp.into_iter() {
+        write!(&mut input, "{}\t", c.name).unwrap(); // this unwrap never fails
+        c.comp.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
             .for_each(|curr| input.push_str(&(curr.to_string() + "\t")));
