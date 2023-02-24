@@ -78,7 +78,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
 
 
 WORKDIR /app
-COPY ./frontend/ ./
+COPY ./ ./
 RUN cargo install wasm-pack
 RUN npm install
 RUN wasm-pack build
@@ -93,14 +93,23 @@ FROM rust AS build
 WORKDIR /app
 
 # Avoids needing to rebuild all dependencies in case of code changes in src/
-RUN cargo init --bin
-COPY ./server/Cargo.toml ./Cargo.toml
-COPY ./server/Cargo.lock ./Cargo.lock
-RUN cargo build --release
-RUN rm src/*.rs
+RUN cargo init --bin server
+RUN cargo init fastq2comp
+RUN cargo init --bin frontend
+RUN cargo init --bin cli
 
-COPY ./server/src ./src
-RUN cargo build --release
+COPY ./server/Cargo.toml ./server/Cargo.toml
+COPY ./fastq2comp/Cargo.toml ./fastq2comp/Cargo.toml
+COPY ./frontend/Cargo.toml ./frontend/Cargo.toml
+COPY ./cli/Cargo.toml ./cli/Cargo.toml
+
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+
+RUN cargo build --release -p server
+
+COPY ./server/src ./server/src
+RUN cargo build --release -p server
 
 # Final image
 
@@ -114,7 +123,7 @@ RUN apt-get update \
 	&& apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' \
     && apt-get update \
 	&& apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
-	&& Rscript -e ' install.packages(c("tidyverse", "umap")) ' \
+	&& Rscript -e 'install.packages(c("tidyverse", "umap"))' \
   && Rscript -e 'install.packages("remotes")' \
   && Rscript -e 'remotes::install_github("rstudio/pins")' \
 	&& rm -rf /var/lib/apt/lists/*
