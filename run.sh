@@ -9,8 +9,6 @@ npm --version && \
 	wasm-pack --version && \
 	Rscript --version \
 
-
-
 cd frontend
 npm install
 npm run build
@@ -21,6 +19,7 @@ cd server
 export LIBRARIAN_INDEX_PATH="../frontend/dist/"
 export LIBRARIAN_PORT="8186"
 export LIBRARIAN_EXAMPLE_PATH="../frontend/example_inputs"
+export RUST_LOG=trace
 cargo run --bin server --release
 )
 cd ..
