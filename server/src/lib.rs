@@ -48,8 +48,8 @@ pub fn plot_comp(comp: Vec<Sample>) -> Result<Vec<Plot>, PlotError> {
 
     let mut input = String::new();
 
-    for c in comp.into_iter() {
-        write!(&mut input, "{}\t", c.name).unwrap(); // this unwrap never fails
+    for (i, c) in comp.into_iter().enumerate() {
+        write!(&mut input, "sample_{:02} {}\t", i + 1, c.name).unwrap(); // this unwrap never fails
         c.comp.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
