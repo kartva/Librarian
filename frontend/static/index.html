@@ -46,10 +46,12 @@
             <div class="container">
                 <div class="row mb-4">
                     <!-- Choose files -->
-                    <div class="col-md-6">
+                    <div>
                         <h4 class="font-weight-bold mb-4">Choose FASTQ file</h4>
+                        <p>The reference map is built on Illumina sequencing data from mouse and human from the following library types: ATAC-seq, BS-seq, ChIA-PET, ChIP-seq, DNase-HS, Hi-C, MBD-seq, MeDIP-seq, miRNA-seq, NMase-seq, ncRNA-seq, RIP-seq, RNA-seq and ssRNA-seq. Data obtained from other sequencing technologies, different organisms (in particular those with a substantially different genomic GC content) or other library preparation methods may produce unexpected results.</p>
                         <div class="custom-file mb-2">
-                            <input type="file" id="file_selector" data-browse-on-zone-click="true" accept=".fq,.fastq,.fq.gz,.fastq.gz" multiple>
+                            <input type="file" id="file_selector" class="col-md-4" data-browse-on-zone-click="true" accept=".fq,.fastq,.fq.gz,.fastq.gz" multiple>                            
+                            <button class="btn btn-lg btn-primary d-none" id="run">Run analysis</button>
                         </div>
 
                         <p class="mt-2">
@@ -59,10 +61,6 @@
                             </button>
                             to try Librarian
                         </p>
-                    </div>
-
-                    <div class="col-md-2 d-flex align-items-center justify-content-center">
-                        <button class="btn btn-lg btn-primary d-none" id="run">Run analysis</button>
                     </div>
                 </div>
                 <hr/>
