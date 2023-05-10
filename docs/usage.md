@@ -17,7 +17,7 @@ Simply select one or more fastq or fastq.gz files from your computer and view or
 
 You can install Librarian on your own system from [here](https://github.com/DesmondWillowbrook/Librarian/tree/master/server) as a Docker or non-Docker setup.
 
->> Do we want to have separate installation for the offline and BI query version as the latter doesn't have all the dependencies?
+>> Do we want to have separate installation for the offline and BI query version as the latter doesn't have all the dependencies??
 
 Librarian CLI can be run in the following modes:
 
