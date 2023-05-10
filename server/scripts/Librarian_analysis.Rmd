@@ -1,6 +1,14 @@
-## This is the analysis script for the offline version of Librarian
+---
+title: "Librarian Report"
+output:
+  html_document:
+    df_print: paged
+---
 
-## The test data is read from a file.
+
+```{r original script, include=FALSE}
+## This is the analysis script for Librarian
+
 ## This script reads in a pinned umap model of a collection of library compositions.
 ## Compositions from test libraries get projected onto the existing UMAP.
 
@@ -20,13 +28,12 @@ library(ggrastr)
 
 ## Getting input file path
 
-#args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly=TRUE)
 
 
 ## creating the pin board
 
-#board <- board_folder("./scripts")
-board <- board_folder("..")
+board <- board_folder("./scripts")
 
 ## loading the pinned model and coordinates
 
@@ -39,8 +46,7 @@ board %>%
 
 ## Loading gathered library compositions
 
-#read_tsv(file("stdin"), col_names = FALSE) -> test.import
-read_tsv("test_library_composition_5.txt", col_names = FALSE) -> test.import
+read_tsv(file("stdin"), col_names = FALSE) -> test.import
 
 
 
@@ -123,10 +129,8 @@ compositions_umap_results %>%
 
 rasterise(compositions_umap_results_plot, layers = 'Point', dpi = 300) -> compositions_umap_results_plot
 
-# ggsave(filename = file.path(args[2],"compositions_map.svg", width = 8, height = 6, units = "in", device = svg)
-# ggsave(filename = file.path(args[2],"compositions_map.png", width = 8, height = 6, units = "in", device = png)
-ggsave(filename = "compositions_map.svg", width = 8, height = 6, units = "in", device = svg)
-ggsave(filename = "compositions_map.png", width = 8, height = 6, units = "in", device = png)
+ggsave(filename = file.path(args[2],"compositions_map.svg", width = 8, height = 6, units = "in", device = svg))
+ggsave(filename = file.path(args[2],"compositions_map.png", width = 8, height = 6, units = "in", device = png))
 
 
 ## Introducing a grid to the plot
@@ -202,12 +206,8 @@ umap_grid_tile_long %>%
 
 rasterise(umap_grid_tile_long_plot, layers = 'Tile', dpi = 300) -> umap_grid_tile_long_plot
 
-#ggsave(filename = file.path(args[2],"probability_maps.svg", width = 12, height = 8, units = "in", device = svg)
-#ggsave(filename = file.path(args[2],"probability_maps.png", width = 12, height = 8, units = "in", device = png)
-
-ggsave(filename = "probability_maps.svg", width = 12, height = 8, units = "in", device = svg)
-ggsave(filename = "probability_maps.png", width = 12, height = 8, units = "in", device = png)
-
+ggsave(filename = file.path(args[2],"probability_maps.svg", width = 12, height = 8, units = "in", device = svg))
+ggsave(filename = file.path(args[2],"probability_maps.png", width = 12, height = 8, units = "in", device = png))
 
 
 ## Pulling out probabilities for the test library
@@ -220,7 +220,6 @@ test_coordinates %>%
 test_grid %>% 
   left_join(grid_tile_corr_percentages) %>% 
   pivot_longer(5:last_col(), names_to = "library_type", values_to = "percent") -> test_percentage
-
 
 
 ## Plotting grid stats as heatmap
@@ -237,11 +236,8 @@ test_percentage %>%
 
 sample_number <- nrow(test)
 
-#ggsave(filename = file.path(args[2],"prediction_plot.svg", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = svg)
-#ggsave(filename = file.path(args[2],"prediction_plot.png", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = png)
-
-ggsave(filename = "prediction_plot.svg", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = svg)
-ggsave(filename = "prediction_plot.png", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = png)
+ggsave(filename = file.path(args[2],"prediction_plot.svg", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = svg))
+ggsave(filename = file.path(args[2],"prediction_plot.png", width = (2 + (sample_number * 0.3)), height = 5, units = "in", device = png))
 
 
 ## Exporting probablility table for use in MultiQC
@@ -252,7 +248,40 @@ test_percentage %>%
   pivot_wider(names_from = library_type, values_from = percent) -> probabilities_wide
 
 write_tsv(probabilities_wide, "librarian_heatmap.txt")
+```
 
+Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures for library quality control: Test library compositions are extracted and compared against previously published data sets.
 
+## Samples
 
+```{r sample names, echo=FALSE}
+sample_lookup
+```
 
+## Compositions plot
+
+UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by black circles.
+
+```{r compositions plot, echo=FALSE, fig.height=6, fig.width=8}
+compositions_umap_results_plot
+```
+
+## Probability maps
+
+This collection of maps shows the probability of a particular region of the map to correspond to a certain library type. The darker the colour, the more dominated the region is by the indicated library type. The location of test libraries is indicated by a light blue circle.
+
+```{r probability maps, echo=FALSE, fig.height=8, fig.width=12}
+umap_grid_tile_long_plot
+```
+
+## Probability heatmap
+
+For each projected test library, the location on the Compositions/Probability Map is determined. This plot shows how published library types are represented at the same location.
+
+```{r heatmap, echo=FALSE, fig.height=5}
+test_percentage_heatmap
+```
+
+## Interpretation
+
+Some regions on the map are very specific to a certain library type, others are more mixed. Therefore, for some test libraries the results will be much clearer than for others. The different plots are intended to provide a good overview of how similar the test library is to published data. The cause of any deviations should be inspected; the interpretation will be different depending on how characteristic the composition signature of the library type and how far off the projection of the test sample is.
