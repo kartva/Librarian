@@ -8,7 +8,7 @@ use std::{
 };
 use thiserror::Error;
 
-const R_SCRIPT_RUN: &str = r#""rmarkdown::render('Librarian_offline_analysis.Rmd')""#;
+const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
 
 #[derive(Debug, Error)]
 pub enum PlotError {
@@ -67,16 +67,16 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Tempdir: {:?}", tmpdir);
 
+    let debug_stream = || if log_enabled!(log::Level::Debug) {
+        Stdio::inherit()
+    } else {
+        Stdio::null()
+    };
+
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr({
-            if log_enabled!(log::Level::Debug) {
-                Stdio::inherit()
-            } else {
-                Stdio::null()
-            }
-        })
+        .stdout(debug_stream())
+        .stderr(debug_stream())
         .arg("-e")
         .arg(R_SCRIPT_RUN)
         .arg("--args")
