@@ -8,7 +8,7 @@ use actix_files::Files;
 use actix_web::{error, middleware, post, web, App, HttpResponse, HttpServer};
 
 use fastq2comp::BaseComp;
-use log::{self, warn};
+use log::{self, warn, debug};
 use serde_json::to_vec;
 use simple_logger::SimpleLogger;
 use std::{env, fmt::Debug, path::PathBuf, str::FromStr};
@@ -18,6 +18,8 @@ use server::plot_comp;
 #[post("/api/plot_comp")]
 async fn plot(comp: web::Json<Vec<BaseComp>>) -> Result<HttpResponse, error::Error> {
     let plots = web::block(move || plot_comp(comp.into_inner())).await??;
+
+    debug!("Plots: {:?}", &plots.iter().map(|p| &p.filename).collect::<Vec<_>>());
 
     Ok(HttpResponse::Ok()
         .content_type("application/json")
