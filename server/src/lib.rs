@@ -8,7 +8,7 @@ use std::{
 };
 use thiserror::Error;
 
-const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_220623.R";
+const R_SCRIPT_RUN: &str = r#""rmarkdown::render('Librarian_offline_analysis.Rmd')""#;
 
 #[derive(Debug, Error)]
 pub enum PlotError {
@@ -77,7 +77,8 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
                 Stdio::null()
             }
         })
-        .arg(R_SCRIPT_PATH)
+        .arg("-e")
+        .arg(R_SCRIPT_RUN)
         .arg("--args")
         .arg(&tmpdir)
         .spawn()
