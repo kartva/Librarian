@@ -1,14 +1,54 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn, error};
+use log::{self, debug, log_enabled, trace, warn, error, info};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
-    fmt::Write as _,
+    fmt::Write as _, ops::Deref,
 };
 use thiserror::Error;
 
-const R_SCRIPT_PATH: &str = "scripts/librarian_plotting_test_samples_server_220623.R";
+const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
+
+struct TempDir {
+    path: String,
+}
+
+impl TempDir {
+    fn new() -> Self {
+        let tmpdir = String::from_utf8_lossy(
+            &Command::new("mktemp")
+                .arg("-d")
+                .output()
+                .expect("Temporary file creation failed.")
+                .stdout, // removes the \n which mktemp appends
+        )
+        .to_string()
+        .split('\n')
+        .next()
+        .unwrap()
+        .to_owned();
+
+        debug!("Tempdir: {:?}", tmpdir);
+
+        Self { path: tmpdir }
+    }
+}
+
+impl Deref for TempDir {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.path
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        trace!("Deleting files.");
+        std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum PlotError {
@@ -52,34 +92,22 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     }
     trace!("Input: {:?}", &input);
 
-    let tmpdir = String::from_utf8_lossy(
-        &Command::new("mktemp")
-            .arg("-d")
-            .output()
-            .expect("Temporary file creation failed.")
-            .stdout, // removes the \n which mktemp appends
-    )
-    .to_string()
-    .split('\n')
-    .next()
-    .unwrap()
-    .to_owned();
+    let tmpdir = TempDir::new();
 
-    debug!("Tempdir: {:?}", tmpdir);
+    let debug_stream = || if log_enabled!(log::Level::Debug) {
+        Stdio::piped()
+    } else {
+        Stdio::null()
+    };
 
     let mut child = Command::new("Rscript")
         .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr({
-            if log_enabled!(log::Level::Debug) {
-                Stdio::inherit()
-            } else {
-                Stdio::null()
-            }
-        })
-        .arg(R_SCRIPT_PATH)
+        .stdout(debug_stream())
+        .stderr(debug_stream())
+        .arg("-e")
+        .arg(R_SCRIPT_RUN)
         .arg("--args")
-        .arg(&tmpdir)
+        .arg(&*tmpdir)
         .spawn()
         .expect("Failed to spawn child process");
 
@@ -91,6 +119,26 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             .expect("Failed to write to stdin")
     });
 
+    if log_enabled!(log::Level::Debug) {
+        let mut buf = String::new();
+        child
+            .stdout
+            .as_mut()
+            .unwrap()
+            .read_to_string(&mut buf)
+            .expect("Error reading stdout");
+        debug!("Rscript stdout: {}", buf);
+
+        let mut buf = String::new();
+        child
+            .stderr
+            .as_mut()
+            .unwrap()
+            .read_to_string(&mut buf)
+            .expect("Error reading stderr");
+        debug!("Rscript stderr: {}", buf);
+    }
+
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
         error!("Rscript failed with status {}", exit_status);
@@ -99,10 +147,10 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Child executed successfuly.");
 
-    let out_arr = read_dir(&tmpdir)?
+    let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {
             if e.is_err() {
-                warn!("Error iterating over dir {:?}, skipping file.", &tmpdir)
+                warn!("Error iterating over dir {:?}, skipping file.", *tmpdir)
             };
             e.ok()
         })
@@ -124,9 +172,6 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             })
         })
         .collect::<Vec<_>>();
-
-    trace!("Deleting files.");
-    std::fs::remove_dir_all(&tmpdir).expect("Error deleting tmpfile.");
 
     Ok(out_arr)
 }
