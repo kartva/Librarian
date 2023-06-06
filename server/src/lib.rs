@@ -1,14 +1,15 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn, error};
+use log::{self, debug, log_enabled, trace, warn, error, info};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
-    fmt::Write as _,
+    fmt::Write as _, ops::Deref,
 };
 use thiserror::Error;
 
 const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
+
 struct TempDir {
     path: String,
 }
@@ -92,8 +93,6 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     trace!("Input: {:?}", &input);
 
     let tmpdir = TempDir::new();
-
-    debug!("Tempdir: {:?}", *tmpdir);
 
     let debug_stream = || if log_enabled!(log::Level::Debug) {
         Stdio::piped()
