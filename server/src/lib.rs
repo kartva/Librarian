@@ -1,54 +1,16 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn, error, info};
+use log::{self, debug, log_enabled, trace, warn, error};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
-    fmt::Write as _, ops::Deref,
+    fmt::Write as _
 };
 use thiserror::Error;
 
+mod tempdir;
+
 const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
-
-struct TempDir {
-    path: String,
-}
-
-impl TempDir {
-    fn new() -> Self {
-        let tmpdir = String::from_utf8_lossy(
-            &Command::new("mktemp")
-                .arg("-d")
-                .output()
-                .expect("Temporary file creation failed.")
-                .stdout, // removes the \n which mktemp appends
-        )
-        .to_string()
-        .split('\n')
-        .next()
-        .unwrap()
-        .to_owned();
-
-        debug!("Tempdir: {:?}", tmpdir);
-
-        Self { path: tmpdir }
-    }
-}
-
-impl Deref for TempDir {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.path
-    }
-}
-
-impl Drop for TempDir {
-    fn drop(&mut self) {
-        trace!("Deleting files.");
-        std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
-    }
-}
 
 #[derive(Debug, Error)]
 pub enum PlotError {
@@ -61,6 +23,8 @@ pub enum PlotError {
 impl actix_web::error::ResponseError for PlotError {}
 
 use serde::{Deserialize, Serialize};
+
+use crate::tempdir::TempDir;
 /// Describes a plot; which has a filename and data.
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
@@ -82,7 +46,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     let mut input = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
-        write!(&mut input, "sample_{:02}\t", i + 1).unwrap(); // this unwrap never fails
+        write!(&mut input, "sample_{:02}\tsample_name_{:02}\t", i + 1, i + 1).unwrap(); // this unwrap never fails
         c.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
