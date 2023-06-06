@@ -96,7 +96,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     debug!("Tempdir: {:?}", *tmpdir);
 
     let debug_stream = || if log_enabled!(log::Level::Debug) {
-        Stdio::inherit()
+        Stdio::piped()
     } else {
         Stdio::null()
     };
@@ -119,6 +119,26 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             .write_all(input.as_bytes())
             .expect("Failed to write to stdin")
     });
+
+    if log_enabled!(log::Level::Debug) {
+        let mut buf = String::new();
+        child
+            .stdout
+            .as_mut()
+            .unwrap()
+            .read_to_string(&mut buf)
+            .expect("Error reading stdout");
+        debug!("Rscript stdout: {}", buf);
+
+        let mut buf = String::new();
+        child
+            .stderr
+            .as_mut()
+            .unwrap()
+            .read_to_string(&mut buf)
+            .expect("Error reading stderr");
+        debug!("Rscript stderr: {}", buf);
+    }
 
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
