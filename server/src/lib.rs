@@ -87,7 +87,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         let mut buf = String::new();
         child
             .stdout
-            .as_mut()
+            .take()
             .unwrap()
             .read_to_string(&mut buf)
             .expect("Error reading stdout");
@@ -96,7 +96,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         let mut buf = String::new();
         child
             .stderr
-            .as_mut()
+            .take()
             .unwrap()
             .read_to_string(&mut buf)
             .expect("Error reading stderr");
