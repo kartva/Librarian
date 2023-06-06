@@ -56,7 +56,7 @@ pub mod io_utils {
             arr.slice(0, len as u32).copy_to(&mut buf[..len]);
 
             self.pos += len as u64;
-            Ok(len as usize)
+            Ok(len)
         }
     }
 
