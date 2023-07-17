@@ -10,8 +10,8 @@ npm --version && \
 	Rscript --version \
 
 cd frontend
-#npm install
-#npm run build
+npm install
+npm run build
 cd ..
 
 cd server
