@@ -10,8 +10,8 @@ npm --version && \
 	Rscript --version \
 
 cd frontend
-npm install
-npm run build
+NODE_OPTIONS=--openssl-legacy-provider npm install
+NODE_OPTIONS=--openssl-legacy-provider npm run build
 cd ..
 
 cd server
