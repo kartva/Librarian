@@ -10,8 +10,6 @@ use thiserror::Error;
 
 mod tempdir;
 
-const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
-
 #[derive(Debug, Error)]
 pub enum PlotError {
     #[error("R script exited unsuccessfully")]
@@ -69,9 +67,9 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         .stdout(debug_stream())
         .stderr(debug_stream())
         .arg("-e")
-        .arg(R_SCRIPT_RUN)
+        .arg(format!(r#""rmarkdown::render('scripts/Librarian_analysis.Rmd', output_dir = '{}')""#, &*tmpdir))
         .arg("--args")
-        .arg(&*tmpdir)
+        .arg(format!("'{}'", &*tmpdir))
         .spawn()
         .expect("Failed to spawn child process");
 
@@ -83,25 +81,27 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             .expect("Failed to write to stdin")
     });
 
-    if log_enabled!(log::Level::Debug) {
-        let mut buf = String::new();
-        child
-            .stdout
-            .take()
-            .unwrap()
-            .read_to_string(&mut buf)
-            .expect("Error reading stdout");
-        debug!("Rscript stdout: {}", buf);
+    let stdout = child.stdout.take();
+    std::thread::spawn(move || {
+        if let Some(mut stdout) = stdout {
+            let mut buf = String::new();
+            stdout
+                .read_to_string(&mut buf)
+                .expect("Error reading stdout");
+            debug!("Rscript stdout: {}", buf);
+        }
+    });
 
-        let mut buf = String::new();
-        child
-            .stderr
-            .take()
-            .unwrap()
-            .read_to_string(&mut buf)
-            .expect("Error reading stderr");
-        debug!("Rscript stderr: {}", buf);
-    }
+    let stderr = child.stderr.take();
+    std::thread::spawn(move || {
+        if let Some(mut stderr) = stderr {
+            let mut buf = String::new();
+            stderr
+                .read_to_string(&mut buf)
+                .expect("Error reading stderr");
+            debug!("Rscript stderr: {}", buf);
+        }
+    });
 
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
