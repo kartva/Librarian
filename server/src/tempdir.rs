@@ -1,5 +1,5 @@
 use std::process::Command;
-use log::{trace, debug};
+use log::{trace, debug, log_enabled};
 use std::ops::Deref;
 
 pub struct TempDir {
@@ -38,6 +38,10 @@ impl Deref for TempDir {
 impl Drop for TempDir {
     fn drop(&mut self) {
         trace!("Deleting files.");
-        //std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
+        if log_enabled!(log::Level::Debug) {
+            return;
+        }
+        
+        std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
     }
 }
