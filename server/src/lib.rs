@@ -113,7 +113,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
     const CUSTOM_ENGINE: engine::GeneralPurpose =
-        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
+        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::PAD);
 
     let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {
