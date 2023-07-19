@@ -52,7 +52,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         input.pop(); // remove trailing '\t' to make it valid tsv
         input.push('\n');
     }
-    trace!("Input: {:?}", &input);
+    debug!("Input: {:?}", &input);
 
     let tmpdir = TempDir::new();
 
@@ -62,14 +62,12 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         Stdio::null()
     };
 
-    let mut child = Command::new("Rscript")
+    let mut child = Command::new("bash")
         .stdin(Stdio::piped())
         .stdout(debug_stream())
         .stderr(debug_stream())
-        .arg("-e")
-        .arg(format!(r#""rmarkdown::render('scripts/Librarian_analysis.Rmd', output_dir = '{}')""#, &*tmpdir))
-        .arg("--args")
-        .arg(format!("'{}'", &*tmpdir))
+        .arg("scripts/exec_analysis.sh")
+        .arg(&*tmpdir)
         .spawn()
         .expect("Failed to spawn child process");
 
