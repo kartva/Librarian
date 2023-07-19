@@ -1,5 +1,5 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn, error};
+use log::{self, debug, log_enabled, warn, error};
 use std::{
     fs::{read_dir, File},
     io::{Read, Write},
@@ -117,17 +117,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             e.ok()
         })
         .filter_map(|e| {
-            let filename = e.file_name().to_string_lossy().to_string();
-            let f = File::open(e.path());
-            if f.is_err() {
-                warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
-                return None;
-            };
+            let e = e.path();
+
+            let filename = e.file_name()?.to_string_lossy().to_string();
+            let mut f = File::open(&e).map_err(|f| warn!("Error opening file {:?} due to error {:?}", &e, &f)).ok()?;
             let mut buf = String::new();
-            if let Err(err) = f.unwrap().read_to_string(&mut buf) {
-                warn!("Error reading file {:?} due to error {:?}", e.path(), err);
-                return None;
-            }
+            f.read_to_string(&mut buf).map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f)).ok()?;
+
             Some(Plot {
                 plot: buf,
                 filename,
