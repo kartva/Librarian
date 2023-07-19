@@ -109,6 +109,12 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Child executed successfuly.");
 
+    // initialize base64 engine
+    use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+
+    const CUSTOM_ENGINE: engine::GeneralPurpose =
+        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
+
     let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {
             if e.is_err() {
@@ -121,11 +127,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
             let filename = e.file_name()?.to_string_lossy().to_string();
             let mut f = File::open(&e).map_err(|f| warn!("Error opening file {:?} due to error {:?}", &e, &f)).ok()?;
-            let mut buf = String::new();
-            f.read_to_string(&mut buf).map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f)).ok()?;
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf).map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f)).ok()?;
+
+            let b64_buf = CUSTOM_ENGINE.encode(buf);
 
             Some(Plot {
-                plot: buf,
+                plot: b64_buf,
                 filename,
             })
         })

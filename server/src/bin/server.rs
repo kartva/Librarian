@@ -20,6 +20,9 @@ async fn plot(comp: web::Json<Vec<BaseComp>>) -> Result<HttpResponse, error::Err
     let plots = web::block(move || plot_comp(comp.into_inner())).await??;
 
     debug!("Plots: {:?}", &plots.iter().map(|p| &p.filename).collect::<Vec<_>>());
+    if plots.is_empty() {
+        warn!("No plots found in temp folder!");
+    }
 
     Ok(HttpResponse::Ok()
         .content_type("application/json")

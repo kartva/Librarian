@@ -57,18 +57,23 @@ const wasm = import("../pkg/index").then((wasm) => {
                         };
 
                         //display plots
+                        console.log("graphs: ", graphs)
                         for (let graph of graphs) {
                             let filename = graph.filename;
-                            let plot = graph.plot;
+                            let [name, ext] = filename.split('.');
 
-                            let enc_data = btoa(plot);
-                            let link = 'data:image/svg+xml;base64,' + enc_data;
+                            // only display svg plots
+                            if (ext !== "svg") {
+                                continue;
+                            }
+
+                            let plot = graph.plot;
+                            let link = 'data:image/svg+xml;base64,' + plot;
                             let img = document.createElement('img');
                             img.src = link;
                             img.id = filename; //set id as filename
                             img.classList.add('plot', 'img-fluid', 'mx-auto', 'd-block');
 
-                            let name = filename.split('.')[0];
                             img.style.height = plot_height[name];
 
                             let label = legend[name];
