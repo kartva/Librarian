@@ -131,7 +131,7 @@ fn query(args: Cli) {
             .write(true)
             .open(&p)
             .unwrap();
-        f.write_all(r.as_bytes()).unwrap();
+        f.write_all(&r).unwrap();
         info!("{} {:?}", "Created".green(), p);
     }
 }

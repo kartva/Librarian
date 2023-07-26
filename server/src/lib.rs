@@ -24,12 +24,46 @@ use serde::{Deserialize, Serialize};
 
 use crate::tempdir::TempDir;
 /// Describes a plot; which has a filename and data.
+/// The data has a custom `serde` serialize and deserialize implementation:
+/// it is converted into base64 upon serialization and back.
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
     /// Raw plot data - in svg
-    // using base64 to make data into a string
-    pub plot: String,
+    #[serde(serialize_with = "serialize_plot")]
+    #[serde(deserialize_with = "deserialize_plot")]
+    pub plot: Vec<u8>,
     pub filename: String,
+}
+
+// initialize base64 engine
+use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+
+const CUSTOM_ENGINE: engine::GeneralPurpose =
+    engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::PAD);
+
+use serde::{Serializer, Deserializer, de::Visitor};
+
+fn serialize_plot<S> (buf: &[u8], ser: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    let b64_buf = CUSTOM_ENGINE.encode(buf);
+    ser.serialize_str(&b64_buf)
+}
+
+struct Base64Visitor;
+impl<'de> Visitor<'de> for Base64Visitor {
+    type Value = Vec<u8>;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a byte slice")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error, {
+        CUSTOM_ENGINE.decode(v).map_err(|e| serde::de::Error::custom(e))
+    }
+}
+
+fn deserialize_plot<'de, D>(de: D) -> Result<Vec<u8>, D::Error> where D: Deserializer<'de> {
+    de.deserialize_str(Base64Visitor)
 }
 
 impl std::fmt::Debug for Plot {
@@ -109,11 +143,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Child executed successfuly.");
 
-    // initialize base64 engine
-    use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
-    const CUSTOM_ENGINE: engine::GeneralPurpose =
-        engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::PAD);
 
     let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {
@@ -130,10 +160,8 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             let mut buf = Vec::new();
             f.read_to_end(&mut buf).map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f)).ok()?;
 
-            let b64_buf = CUSTOM_ENGINE.encode(buf);
-
             Some(Plot {
-                plot: b64_buf,
+                plot: buf,
                 filename,
             })
         })
