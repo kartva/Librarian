@@ -27,7 +27,7 @@ use crate::tempdir::TempDir;
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
     /// Raw plot data - in svg
-    // since it's svg, we'll be safe in using a String
+    // using base64 to make data into a string
     pub plot: String,
     pub filename: String,
 }
