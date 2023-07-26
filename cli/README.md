@@ -37,10 +37,7 @@ cargo install --git "https://github.com/DesmondWillowbrook/Librarian/" cli
 
 ## Querying another server
 ```bash
-(
-export LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp
-librarian example.fastq.hz
-)
+LIBRARIAN_API_URL=http://127.0.0.1:8186/api/plot_comp librarian example.fastq.gz
 ```
 
 To debug the client:
