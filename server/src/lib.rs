@@ -142,8 +142,7 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     };
 
     debug!("Child executed successfuly.");
-
-
+    
 
     let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {

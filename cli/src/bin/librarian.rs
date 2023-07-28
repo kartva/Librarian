@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
-use fastq2comp::io_utils;
+use fastq2comp::{io_utils, BaseComp};
 use log::{error, trace, debug, info, warn};
 use server::Plot;
 use simple_logger::SimpleLogger;
@@ -23,20 +23,37 @@ struct Cli {
     #[structopt(required = true, parse(from_os_str))]
     pub input: Vec<PathBuf>,
 
-    /// Prefix to append to output files (eg. `output_dir/` or `name`)
-    #[structopt(short, long, default_value = "librarian")]
+    /// Prefix to append to output files (eg. `output_dir/` or `name_`)
+    #[structopt(short = "o", long, default_value = "librarian_")]
     pub prefix: String,
 
     /// Suppresses all output except errors
     #[structopt(short, long)]
     pub quiet: bool,
+
+    /// Specifies query URL to send prediction request to.
+    /// Defaults to Babraham Bioinformatic's server.
+    /// Passed argument is given precedence over environment variable.
+    /// 
+    /// This cannot be set together with --local.
+    /// 
+    #[structopt(long, env = "LIBRARIAN_API_URL", default_value = "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp")]
+    pub api: String,
+
+    /// Run all processing locally, replacing the need for a server.
+    /// Requires Rscript and other dependencies to be installed, along with the `scripts` folder.
+    /// See https://github.com/DesmondWillowbrook/Librarian/blob/master/cli/README.md for more details. 
+    /// 
+    /// This cannot be set together with `api`.
+    /// 
+    #[structopt(short, long, conflicts_with("api"))]
+    pub local: bool,
 }
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 fn main() {
     let mut args = Cli::from_args();
-    args.prefix += "_"; // so the prefix "librarian" produces files like "librarian_compositions_map"
 
     SimpleLogger::new()
         .with_level (if args.quiet {log::LevelFilter::Error} else {log::LevelFilter::Info})
@@ -86,38 +103,11 @@ fn query(args: Cli) {
 
     debug!("Compositions: {:#?}", comps);
 
-    let url = var("LIBRARIAN_API_URL").unwrap_or_else(|e| {
-        trace!("LIBRARIAN_API_URL {e}, using default");
-        "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp".to_string()
-    });
-
-    info!("Sending data to server at https://www.bioinformatics.babraham.ac.uk");
-    info!(
-        "{}",
-        "Requests may take up to 5 minutes to process.".green()
-    );
-
-    let client = reqwest::blocking::Client::builder()
-    .timeout(Duration::from_secs(60 * 5))
-    .user_agent(APP_USER_AGENT)
-    .build()
-    .unwrap();
-
-    let req = client.post(&url).json(&comps).send();
-
-    let res = req.map_err(|e| {error!("{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
-    if !res.status().is_success() {
-        error!(
-            "non-success response {} received, terminating",
-            res.status().to_string().red()
-        );
-        error!("error body: {}", res.text().unwrap());
-        panic!();
-    }
-
-    let res = res
-        .json::<Vec<Plot>>()
-        .expect("unable to extract JSON from server response. server may be down");
+    let res = if args.local {
+        query_local(comps)
+    } else {
+        query_server(args.api, comps)
+    };
 
     for mut res in res.into_iter() {
         let r = res.plot;
@@ -134,4 +124,40 @@ fn query(args: Cli) {
         f.write_all(&r).unwrap();
         info!("{} {:?}", "Created".green(), p);
     }
+}
+
+fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
+    info!("Sending data to server at {url}");
+    info!(
+        "{}",
+        "Requests may take up to 5 minutes to process.".green()
+    );
+
+
+
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(60 * 5))
+        .user_agent(APP_USER_AGENT)
+        .build()
+        .unwrap();
+
+    let req = client.post(&url).json(&comps).send();
+
+    let res = req.map_err(|e| {error!("{}\n", "Request to server failed".to_string().red()); panic!("{}", e)}).unwrap();
+    if !res.status().is_success() {
+        error!(
+            "non-success response {} received, terminating",
+            res.status().to_string().red()
+        );
+        error!("error body: {}", res.text().unwrap());
+        panic!();
+    }
+
+    res
+        .json::<Vec<Plot>>()
+        .expect("unable to extract JSON from server response. server may be down")
+}
+
+fn query_local(comps: Vec<BaseComp>) -> Vec<Plot> {
+    server::plot_comp(comps).unwrap()
 }
