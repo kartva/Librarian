@@ -93,12 +93,17 @@ fn query(args: Cli) {
             warn!("Fewer valid reads ({l}) in sample {p:?} than recommended (100,000) (this may be due to reads being filtered out due to being shorter than 50 bases)");
 
             if l == 0 {
-                error!("No valid reads found, exiting.");
-                return
+                error!("No valid reads found, skipping sample.");
+                continue
             }
         }
 
         comps.push(comp);
+    }
+
+    if comps.is_empty() {
+        error!("No samples could be processed.");
+        return
     }
 
     debug!("Compositions: {:#?}", comps);
