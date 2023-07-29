@@ -24,6 +24,8 @@ struct Cli {
     pub input: Vec<PathBuf>,
 
     /// Prefix to append to output files (eg. `output_dir/` or `name_`)
+    /// Note that this can be used to set an output directory.
+    /// 
     #[structopt(short = "o", long, default_value = "librarian_")]
     pub prefix: String,
 
@@ -137,8 +139,6 @@ fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
         "{}",
         "Requests may take up to 5 minutes to process.".green()
     );
-
-
 
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(60 * 5))
