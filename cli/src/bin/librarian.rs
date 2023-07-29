@@ -5,10 +5,10 @@ use std::time::Duration;
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
 use fastq2comp::{io_utils, BaseComp};
-use log::{error, trace, debug, info, warn};
+use log::{error, info, warn, debug};
 use server::Plot;
 use simple_logger::SimpleLogger;
-use std::env::var;
+
 use std::io::{BufReader, Write};
 
 use structopt::StructOpt;
@@ -53,7 +53,7 @@ struct Cli {
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 fn main() {
-    let mut args = Cli::from_args();
+    let args = Cli::from_args();
 
     SimpleLogger::new()
         .with_level (if args.quiet {log::LevelFilter::Error} else {log::LevelFilter::Info})
