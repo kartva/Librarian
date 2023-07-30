@@ -4,7 +4,7 @@ use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
-    fmt::Write as _
+    fmt::Write as _, path::PathBuf
 };
 use thiserror::Error;
 
@@ -96,11 +96,25 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         Stdio::null()
     };
 
+    // This is a hack
+    // cargo run runs the binary stored somewhere in target
+    // in the working directory where scripts/exec_analysis.sh is present
+    // however in the release version, we don't want to look in the 
+    // current working directory for the scripts folder
+    // and instead look in the same directory as the executable
+    
+    let script_path = if cfg!(debug_assertions) {
+        PathBuf::from("scripts/exec_analysis.sh")
+    } else {
+        std::env::current_exe().expect("current executable path should be found")
+    };
+    debug!("Accessing exec_analysis script at path {:?}", script_path);
+
     let mut child = Command::new("bash")
         .stdin(Stdio::piped())
         .stdout(debug_stream())
         .stderr(debug_stream())
-        .arg("scripts/exec_analysis.sh")
+        .arg(script_path)
         .arg(&*tmpdir)
         .spawn()
         .expect("Failed to spawn child process");
