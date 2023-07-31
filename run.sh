@@ -20,6 +20,6 @@ export LIBRARIAN_INDEX_PATH="../frontend/dist/"
 export LIBRARIAN_PORT="8186"
 export LIBRARIAN_EXAMPLE_PATH="../frontend/example_inputs"
 export RUST_LOG=trace,actix_http=info,mio=info,actix_server=info,actix_web=info
-cargo run --bin server --release
+cargo run --bin server
 )
 cd ..
