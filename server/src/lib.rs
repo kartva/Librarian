@@ -4,18 +4,24 @@ use std::{
     fs::{read_dir, File},
     io::{Read, Write},
     process::{Command, Stdio},
-    fmt::Write as _, path::PathBuf
+    fmt::{Write as _, Display}, path::PathBuf
 };
 use thiserror::Error;
 
 mod tempdir;
 
-#[derive(Debug, Error)]
+#[derive(Error)]
 pub enum PlotError {
     #[error("R script exited unsuccessfully")]
     RExit,
     #[error("Error opening directory")]
     DirErr(#[from] std::io::Error),
+}
+
+impl std::fmt::Debug for PlotError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self, f)
+    }
 }
 
 impl actix_web::error::ResponseError for PlotError {}
@@ -68,7 +74,7 @@ fn deserialize_plot<'de, D>(de: D) -> Result<Vec<u8>, D::Error> where D: Deseria
 
 impl std::fmt::Debug for Plot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.filename.fmt(f)
+        std::fmt::Debug::fmt(&self.filename, f)
     }
 }
 

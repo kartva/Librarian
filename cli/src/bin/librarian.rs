@@ -164,5 +164,5 @@ fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
 }
 
 fn query_local(comps: Vec<BaseComp>) -> Vec<Plot> {
-    server::plot_comp(comps).unwrap()
+    server::plot_comp(comps).expect("Error plotting compositions")
 }
