@@ -20,8 +20,7 @@ The `scripts` folder included with the binary should be in the same directory as
 
 ```bash
 apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
-Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "remotes", "rmarkdown"))' 
-Rscript -e 'remotes::install_github("rstudio/pins")'
+Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "pins", "rmarkdown"))'
 ```
 
 #### Building from source
