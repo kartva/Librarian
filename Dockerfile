@@ -123,8 +123,7 @@ RUN apt-get update \
 	&& apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7' \
     && apt-get update \
 	&& apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev \
-	&& Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "remotes", "rmarkdown"))' \
-  && Rscript -e 'remotes::install_github("rstudio/pins")' \
+	&& Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "pins", "rmarkdown"))' \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
