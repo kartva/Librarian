@@ -1,10 +1,11 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, warn, error};
+use log::{self, debug, error, log_enabled, warn};
 use std::{
+    fmt::{Display, Write as _},
     fs::{read_dir, File},
     io::{Read, Write},
+    path::PathBuf,
     process::{Command, Stdio},
-    fmt::{Write as _, Display}, path::PathBuf
 };
 use thiserror::Error;
 
@@ -42,14 +43,21 @@ pub struct Plot {
 }
 
 // initialize base64 engine
-use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+use base64::{
+    alphabet,
+    engine::{self, general_purpose},
+    Engine as _,
+};
 
 const CUSTOM_ENGINE: engine::GeneralPurpose =
     engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::PAD);
 
-use serde::{Serializer, Deserializer, de::Visitor};
+use serde::{de::Visitor, Deserializer, Serializer};
 
-fn serialize_plot<S> (buf: &[u8], ser: S) -> Result<S::Ok, S::Error> where S: Serializer {
+fn serialize_plot<S>(buf: &[u8], ser: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
     let b64_buf = CUSTOM_ENGINE.encode(buf);
     ser.serialize_str(&b64_buf)
 }
@@ -62,13 +70,19 @@ impl<'de> Visitor<'de> for Base64Visitor {
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-        where
-            E: serde::de::Error, {
-        CUSTOM_ENGINE.decode(v).map_err(|e| serde::de::Error::custom(e))
+    where
+        E: serde::de::Error,
+    {
+        CUSTOM_ENGINE
+            .decode(v)
+            .map_err(|e| serde::de::Error::custom(e))
     }
 }
 
-fn deserialize_plot<'de, D>(de: D) -> Result<Vec<u8>, D::Error> where D: Deserializer<'de> {
+fn deserialize_plot<'de, D>(de: D) -> Result<Vec<u8>, D::Error>
+where
+    D: Deserializer<'de>,
+{
     de.deserialize_str(Base64Visitor)
 }
 
@@ -84,7 +98,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     let mut input = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
-        write!(&mut input, "sample_{:02}\tsample_name_{:02}\t", i + 1, i + 1).unwrap(); // this unwrap never fails
+        write!(
+            &mut input,
+            "sample_{:02}\tsample_name_{:02}\t",
+            i + 1,
+            i + 1
+        )
+        .unwrap(); // this unwrap never fails
         c.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
@@ -96,16 +116,18 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     let tmpdir = TempDir::new();
 
-    let debug_stream = || if log_enabled!(log::Level::Debug) {
-        Stdio::piped()
-    } else {
-        Stdio::null()
+    let debug_stream = || {
+        if log_enabled!(log::Level::Debug) {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        }
     };
 
     // This is a hack
     // cargo run runs the binary stored somewhere in target
     // in the working directory where scripts/exec_analysis.sh is present
-    // however in the release version, we don't want to look in the 
+    // however in the release version, we don't want to look in the
     // current working directory for the scripts folder
     // and instead look in the same directory as the executable
 
@@ -166,7 +188,6 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     };
 
     debug!("Child executed successfuly.");
-    
 
     let out_arr = read_dir(&*tmpdir)?
         .filter_map(|e| {
@@ -179,9 +200,13 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             let e = e.path();
 
             let filename = e.file_name()?.to_string_lossy().to_string();
-            let mut f = File::open(&e).map_err(|f| warn!("Error opening file {:?} due to error {:?}", &e, &f)).ok()?;
+            let mut f = File::open(&e)
+                .map_err(|f| warn!("Error opening file {:?} due to error {:?}", &e, &f))
+                .ok()?;
             let mut buf = Vec::new();
-            f.read_to_end(&mut buf).map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f)).ok()?;
+            f.read_to_end(&mut buf)
+                .map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f))
+                .ok()?;
 
             Some(Plot {
                 plot: buf,
