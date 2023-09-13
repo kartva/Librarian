@@ -1,4 +1,4 @@
 #!/bin/bash
 args=("$@")
 
-Rscript -e "rmarkdown::render('scripts/Librarian_analysis.Rmd', output_dir = '${args[0]}')" --args "${args[0]}"
+Rscript -e "rmarkdown::render('${args[0]}', output_dir = '${args[1]}')" --args "${args[1]}"

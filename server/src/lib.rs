@@ -108,19 +108,23 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
     // however in the release version, we don't want to look in the 
     // current working directory for the scripts folder
     // and instead look in the same directory as the executable
-    
-    let script_path = if cfg!(debug_assertions) {
-        PathBuf::from("scripts/exec_analysis.sh")
+
+    let scripts_path = if cfg!(debug_assertions) {
+        PathBuf::from("scripts")
     } else {
-        std::env::current_exe().expect("current executable path should be found")
+        std::env::current_exe()
+            .expect("current executable path should be found")
+            .parent()
+            .expect("parent directory should be found").join("scripts")
     };
-    debug!("Accessing exec_analysis script at path {:?}", script_path);
+    debug!("Accessing script directory at path {:?}", scripts_path);
 
     let mut child = Command::new("bash")
         .stdin(Stdio::piped())
         .stdout(debug_stream())
         .stderr(debug_stream())
-        .arg(script_path)
+        .arg(scripts_path.join("exec_analysis.sh"))
+        .arg(scripts_path.join("Librarian_analysis.Rmd"))
         .arg(&*tmpdir)
         .spawn()
         .expect("Failed to spawn child process");
