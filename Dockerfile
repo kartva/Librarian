@@ -4,6 +4,8 @@
 # https://www.lpalmieri.com/posts/fast-rust-docker-builds/
 # https://dev.to/rogertorres/first-steps-with-docker-rust-30oi
 
+LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Librarian
+
 # Build
 FROM rust AS build
 WORKDIR /app
