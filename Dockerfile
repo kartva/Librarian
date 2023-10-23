@@ -4,10 +4,7 @@
 # https://www.lpalmieri.com/posts/fast-rust-docker-builds/
 # https://dev.to/rogertorres/first-steps-with-docker-rust-30oi
 
-LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Librarian
-
-# Build
-FROM rust AS build
+FROM docker.io/rust AS build
 WORKDIR /app
 
 COPY ./fastq2comp/ ./fastq2comp/
@@ -26,7 +23,7 @@ RUN apt-get update && \
 
 # Final image
 
-FROM r-base:latest
+FROM docker.io/r-base:latest
 
 # Install R packages
 RUN apt-get update && \
@@ -37,7 +34,9 @@ WORKDIR /app
 COPY --from=build /app/librarian_v1.1 ./
 RUN mkdir /app/out
 
-ENTRYPOINT ["./librarian", "--local", "--prefix", "/app/out/"]
+LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Librarian
+
+ENTRYPOINT ["./librarian", "--local", "--output-dir", "/app/out/"]
 
 # example command to run this image:
 # docker run -v  \ 
