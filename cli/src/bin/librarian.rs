@@ -56,9 +56,6 @@ static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_P
 fn main() {
     let args = Cli::from_args();
 
-    // p -> q equivalent to (!p or q)
-    assert!((!args.local || args.api.is_empty()), "If running locally, API URL must not be set.");
-
     SimpleLogger::new()
         .with_level (if args.quiet {log::LevelFilter::Error} else {log::LevelFilter::Info})
         .env()
