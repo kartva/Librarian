@@ -1,12 +1,12 @@
 use colored::Colorize;
 use std::fs::{File, OpenOptions};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::time::Duration;
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
 use fastq2comp::{io_utils, BaseComp};
 use log::{error, info, warn, debug};
-use server::Plot;
+use server::{Plot, get_script_path, serialize_comps_for_script, run_script};
 use simple_logger::SimpleLogger;
 
 use std::io::{BufReader, Write};
@@ -23,11 +23,10 @@ struct Cli {
     #[structopt(required = true, parse(from_os_str))]
     pub input: Vec<PathBuf>,
 
-    /// Prefix to append to output files (eg. `output_dir/` or `name_`)
-    /// Note that this can be used to set an output directory.
+    /// Output directory (eg. `output_dir/`)
     /// 
-    #[structopt(short = "o", long, default_value = "librarian_")]
-    pub prefix: String,
+    #[structopt(short = "o", long, parse(from_os_str), default_value = "")]
+    pub output_dir: PathBuf,
 
     /// Suppresses all output except errors
     #[structopt(short, long)]
@@ -37,7 +36,7 @@ struct Cli {
     /// Defaults to Babraham Bioinformatic's server.
     /// Passed argument is given precedence over environment variable.
     /// 
-    /// This cannot be set together with --local.
+    /// If --local is set, this argument is ignored.
     /// 
     #[structopt(long, env = "LIBRARIAN_API_URL", default_value = "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp")]
     pub api: String,
@@ -56,6 +55,9 @@ static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_P
 
 fn main() {
     let args = Cli::from_args();
+
+    // p -> q equivalent to (!p or q)
+    assert!((!args.local || args.api.is_empty()), "If running locally, API URL must not be set.");
 
     SimpleLogger::new()
         .with_level (if args.quiet {log::LevelFilter::Error} else {log::LevelFilter::Info})
@@ -110,27 +112,34 @@ fn query(args: Cli) {
 
     debug!("Compositions: {:#?}", comps);
 
-    let res = if args.local {
-        query_local(comps)
+    if args.local {
+        let mut working_dir = PathBuf::from(&args.output_dir);
+        if working_dir.is_relative() {
+            working_dir = std::env::current_dir().unwrap().join(&args.output_dir);
+        }
+
+        query_local(comps, &working_dir);
+        info!("{} {:?}", "Created files in ".green(), &working_dir);
     } else {
-        query_server(args.api, comps)
+        let res = query_server(args.api, comps);
+
+        for res in res.into_iter() {
+            let r = res.plot;
+    
+            let p = {
+                let mut p = PathBuf::from(&args.output_dir);
+                p.push(res.filename);
+                p
+            };
+            let mut f = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(&p)
+                .unwrap();
+            f.write_all(&r).unwrap();
+            info!("{} {:?}", "Created".green(), p);
+        }
     };
-
-    for mut res in res.into_iter() {
-        let r = res.plot;
-
-        let p = {
-            res.filename.insert_str(0, &args.prefix);
-            PathBuf::from(res.filename)
-        };
-        let mut f = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(&p)
-            .unwrap();
-        f.write_all(&r).unwrap();
-        info!("{} {:?}", "Created".green(), p);
-    }
 }
 
 fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
@@ -163,6 +172,12 @@ fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
         .expect("unable to extract JSON from server response. server may be down")
 }
 
-fn query_local(comps: Vec<BaseComp>) -> Vec<Plot> {
-    server::plot_comp(comps).expect("Error plotting compositions")
+fn query_local(comps: Vec<BaseComp>, working_dir: &Path) {
+    assert!(!comps.is_empty());
+
+    let input = serialize_comps_for_script(comps);
+
+    let scripts_path = get_script_path();
+
+    run_script(&scripts_path, working_dir, input).expect("R script should be successful");
 }

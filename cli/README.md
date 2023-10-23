@@ -3,7 +3,7 @@
 Queries the Babraham server (or your own!) with supplied FASTQ files and downloads plots.
 
 ```
-Librarian CLI 1.1.0
+Librarian CLI 1.2.0
 A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files
 when reading.
 
@@ -16,7 +16,8 @@ FLAGS:
 
     -l, --local      
             Run all processing locally, replacing the need for a server. Requires Rscript and other dependencies to be
-            installed, along with the `scripts` folder.
+            installed, along with the `scripts` folder. See
+            https://github.com/DesmondWillowbrook/Librarian/blob/master/cli/README.md for more details.
             
             This cannot be set together with `api`.
     -q, --quiet      
@@ -27,15 +28,15 @@ FLAGS:
 
 
 OPTIONS:
-        --api <api>          
+        --api <api>                  
             Specifies query URL to send prediction request to. Defaults to Babraham Bioinformatic's server. Passed
             argument is given precedence over environment variable.
             
-            This cannot be set together with --local. [env: LIBRARIAN_API_URL=]  [default:
+            If --local is set, this argument is ignored. [env: LIBRARIAN_API_URL=]  [default:
             https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp]
-    -o, --prefix <prefix>    
-            Prefix to append to output files (eg. `output_dir/` or `name_`) Note that this can be used to set an output
-            directory [default: librarian_]
+    -o, --output-dir <output-dir>    
+            Output directory (eg. `output_dir/`) [default: ]
+
 
 ARGS:
     <input>...    

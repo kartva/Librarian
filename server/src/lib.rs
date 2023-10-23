@@ -4,7 +4,7 @@ use std::{
     fmt::{Display, Write as _},
     fs::{read_dir, File},
     io::{Read, Write},
-    path::PathBuf,
+    path::{PathBuf, Path},
     process::{Command, Stdio},
 };
 use thiserror::Error;
@@ -92,14 +92,30 @@ impl std::fmt::Debug for Plot {
     }
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
-    assert!(!comp.is_empty());
+pub fn get_script_path () -> PathBuf {
+    // This is a hack
+    // cargo run runs the binary stored somewhere in target
+    // in the working directory where scripts/exec_analysis.sh is present
+    // however in the release version, we don't want to look in the
+    // current working directory for the scripts folder
+    // and instead look in the same directory as the executable
+    
+    if cfg!(debug_assertions) {
+        PathBuf::from("server/scripts")
+    } else {
+        std::env::current_exe()
+            .expect("current executable path should be found")
+            .parent()
+            .expect("parent directory should be found").join("scripts")
+    }
+}
 
-    let mut input = String::new();
+pub fn serialize_comps_for_script (comp: Vec<BaseComp>) -> String {
+    let mut ser = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
         write!(
-            &mut input,
+            &mut ser,
             "sample_{:02}\tsample_name_{:02}\t",
             i + 1,
             i + 1
@@ -108,15 +124,17 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         c.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
-            .for_each(|curr| input.push_str(&(curr.to_string() + "\t")));
-        input.pop(); // remove trailing '\t' to make it valid tsv
-        input.push('\n');
+            .for_each(|curr| ser.push_str(&(curr.to_string() + "\t")));
+        ser.pop(); // remove trailing '\t' to make it valid tsv
+        ser.push('\n');
     }
-    debug!("Input: {:?}", &input);
+    debug!("Input: {:?}", &ser);
 
-    let tmpdir = TempDir::new();
+    ser
+}
 
-    let debug_stream = || {
+pub fn run_script (scripts_path: &Path, working_dir: &Path, input: String) -> Result<(), PlotError> {
+    let stream_type = || {
         if log_enabled!(log::Level::Debug) {
             Stdio::piped()
         } else {
@@ -124,30 +142,15 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
         }
     };
 
-    // This is a hack
-    // cargo run runs the binary stored somewhere in target
-    // in the working directory where scripts/exec_analysis.sh is present
-    // however in the release version, we don't want to look in the
-    // current working directory for the scripts folder
-    // and instead look in the same directory as the executable
-
-    let scripts_path = if cfg!(debug_assertions) {
-        PathBuf::from("scripts")
-    } else {
-        std::env::current_exe()
-            .expect("current executable path should be found")
-            .parent()
-            .expect("parent directory should be found").join("scripts")
-    };
     debug!("Accessing script directory at path {:?}", scripts_path);
 
     let mut child = Command::new("bash")
         .stdin(Stdio::piped())
-        .stdout(debug_stream())
-        .stderr(debug_stream())
+        .stdout(stream_type())
+        .stderr(stream_type())
         .arg(scripts_path.join("exec_analysis.sh"))
         .arg(scripts_path.join("Librarian_analysis.Rmd"))
-        .arg(&*tmpdir)
+        .arg(working_dir)
         .spawn()
         .expect("Failed to spawn child process");
 
@@ -189,10 +192,24 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Child executed successfuly.");
 
-    let out_arr = read_dir(&*tmpdir)?
+    Ok(())
+}
+
+pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
+    assert!(!comp.is_empty());
+
+    let working_dir = TempDir::new();
+
+    let input = serialize_comps_for_script(comp);
+
+    let scripts_path = get_script_path();
+
+    run_script(&scripts_path, working_dir.as_ref(), input)?;
+
+    let out_arr = read_dir(&*working_dir)?
         .filter_map(|e| {
             if e.is_err() {
-                warn!("Error iterating over dir {:?}, skipping file.", *tmpdir)
+                warn!("Error iterating over dir {:?}, skipping file.", *working_dir)
             };
             e.ok()
         })
