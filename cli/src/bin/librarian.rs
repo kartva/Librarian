@@ -170,6 +170,7 @@ fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
 }
 
 fn query_local(comps: Vec<BaseComp>, working_dir: &Path) {
+    info!("Running locally, using workdir {:?}", working_dir);
     assert!(!comps.is_empty());
 
     let input = serialize_comps_for_script(comps);
