@@ -7,3 +7,8 @@ frontend/dist
 frontend/example_inputs/example_inputs
 .Rproj.user
 release/
+**/compositions_map.*
+**/Librarian_analysis.html
+**/librarian_heatmap.txt
+**/prediction_plot.*
+**/probability_maps.*
