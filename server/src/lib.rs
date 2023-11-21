@@ -29,6 +29,13 @@ impl actix_web::error::ResponseError for PlotError {}
 
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FileComp {
+    pub name: String,
+    #[serde(flatten)]
+    pub comp: BaseComp,
+}
+
 use crate::tempdir::TempDir;
 /// Describes a plot; which has a filename and data.
 /// The data has a custom `serde` serialize and deserialize implementation:
@@ -110,18 +117,18 @@ pub fn get_script_path () -> PathBuf {
     }
 }
 
-pub fn serialize_comps_for_script (comp: Vec<BaseComp>) -> String {
+pub fn serialize_comps_for_script (comp: Vec<FileComp>) -> String {
     let mut ser = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
         write!(
             &mut ser,
-            "sample_{:02}\tsample_name_{:02}\t",
+            "sample_{:02}\tsample_{}\t",
             i + 1,
-            i + 1
+            c.name
         )
         .unwrap(); // this unwrap never fails
-        c.lib
+        c.comp.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
             .for_each(|curr| ser.push_str(&(curr.to_string() + "\t")));
@@ -195,7 +202,7 @@ pub fn run_script (scripts_path: &Path, working_dir: &Path, input: String) -> Re
     Ok(())
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
+pub fn plot_comp(comp: Vec<FileComp>) -> Result<Vec<Plot>, PlotError> {
     assert!(!comp.is_empty());
 
     let working_dir = TempDir::new();

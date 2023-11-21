@@ -13,6 +13,7 @@ onmessage = async function(e) {
 		
 		try {
 			res = JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type || "application/gzip" == file.type));
+			// the server depends on the 'name' field to be present
 			res['name'] = file['name']; // retrieve the sample name
 			result.push(res);
 		} catch (e) {

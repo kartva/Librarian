@@ -4,9 +4,9 @@ use std::path::{PathBuf, Path};
 use std::time::Duration;
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
-use fastq2comp::{io_utils, BaseComp};
+use fastq2comp::io_utils;
 use log::{error, info, warn, debug};
-use server::{Plot, get_script_path, serialize_comps_for_script, run_script};
+use server::{Plot, get_script_path, serialize_comps_for_script, run_script, FileComp};
 use simple_logger::SimpleLogger;
 
 use std::io::{BufReader, Write};
@@ -99,7 +99,12 @@ fn query(args: Cli) {
             }
         }
 
-        comps.push(comp);
+        let filecomp = FileComp {
+            comp,
+            name: p.file_name().expect("sample should have file name").to_string_lossy().to_string(),
+        };
+
+        comps.push(filecomp);
     }
 
     if comps.is_empty() {
@@ -139,7 +144,7 @@ fn query(args: Cli) {
     };
 }
 
-fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
+fn query_server(url: String, comps: Vec<FileComp>) -> Vec<Plot> {
     info!("Sending data to server at {url}");
     info!(
         "{}",
@@ -169,7 +174,7 @@ fn query_server(url: String, comps: Vec<BaseComp>) -> Vec<Plot> {
         .expect("unable to extract JSON from server response. server may be down")
 }
 
-fn query_local(comps: Vec<BaseComp>, working_dir: &Path) {
+fn query_local(comps: Vec<FileComp>, working_dir: &Path) {
     info!("Running locally, using workdir {:?}", working_dir);
     assert!(!comps.is_empty());
 
