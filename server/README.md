@@ -47,3 +47,5 @@ cargo run --release
 ```
 RUST_LOG=trace cargo run --release
 ```
+
+**NOTE:** Setting `RUST_LOG` to `trace` will cause the server to not delete temporary directories after use. This is useful for debugging purposes.

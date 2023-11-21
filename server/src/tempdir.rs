@@ -60,7 +60,8 @@ impl Drop for TempDir {
         }
 
         trace!("Deleting files.");
-        if log_enabled!(log::Level::Debug) {
+        if log_enabled!(log::Level::Trace) {
+            trace!("Leaving files undeleted since trace is enabled.");
             return;
         }
 
