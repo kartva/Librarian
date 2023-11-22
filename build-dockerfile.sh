@@ -4,6 +4,10 @@ set -euxo pipefail
 sudo hwclock --hctosys # to sync time between host and WSL2
 podman build -t ghcr.io/desmondwillowbrook/librarian .
 
+cd frontend/example_inputs/
+unzip example_inputs.zip
+cd -
+
 # try running the container
 podman run \
  -v `pwd`/frontend/example_inputs/example_inputs/:/app/in \
