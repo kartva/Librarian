@@ -33,7 +33,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 ## creating the pin board
 
-board <- board_folder("./scripts")
+board <- board_folder(".")
 
 ## loading the pinned model and coordinates
 
