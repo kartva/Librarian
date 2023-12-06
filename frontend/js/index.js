@@ -42,7 +42,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                         status.classList.add('d-none');
                         document.getElementById('samples_table').classList.remove('d-none');
 
-                        let graphs = await data.json();
+                        let plots = await data.json();
 
                         // Define plot legends and height
                         let legend = {
@@ -57,18 +57,22 @@ const wasm = import("../pkg/index").then((wasm) => {
                         };
 
                         //display plots
-                        for (let graph of graphs) {
-                            let filename = graph.filename;
-                            let plot = graph.plot;
+                        for (let plt of plots) {
+                            let filename = plt.filename;
+                            let [name, ext] = filename.split('.');
 
-                            let enc_data = btoa(plot);
-                            let link = 'data:image/svg+xml;base64,' + enc_data;
+                            // only display svg plots
+                            if (ext !== "svg") {
+                                continue;
+                            }
+
+                            let plot = plt.plot;
+                            let link = `data:image/svg+xml;base64,` + plot;
                             let img = document.createElement('img');
                             img.src = link;
                             img.id = filename; //set id as filename
                             img.classList.add('plot', 'img-fluid', 'mx-auto', 'd-block');
 
-                            let name = filename.split('.')[0];
                             img.style.height = plot_height[name];
 
                             let label = legend[name];
@@ -95,6 +99,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                             document.getElementById('plots').appendChild(hr);
                         }
 
+                        document.getElementById('download_plots').onclick = () => {download_plots(plots)};
                         document.getElementById('download_plots').classList.remove('d-none'); //display the downloads button
 
 
@@ -147,6 +152,7 @@ const wasm = import("../pkg/index").then((wasm) => {
         document.getElementById('result').classList.remove('d-none');
         document.getElementById('status').classList.remove('d-none');
 
+        document.getElementById('download_plots').onclick = () => {console.info("Download plots not initialized yet!")};
         document.getElementById('download_plots').classList.add('d-none'); //hide the downloads plots button
 
         //remove previous results plots if exists
@@ -193,7 +199,6 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     //add event listener on downloads buttons (files and plots)
     document.getElementById('download_files').addEventListener('click', download_files);
-    document.getElementById('download_plots').addEventListener('click', download_plots);
 
 
     // Download input files
@@ -229,41 +234,22 @@ const wasm = import("../pkg/index").then((wasm) => {
 
 
     // Download output plots in a .zip
-    function download_plots() {
+    function download_plots(plots) {
         console.log("button click");
         
-        let imgs = document.getElementsByClassName('plot');
         let zip = new JSZip();
-        let count = 0;
         let zipFilename = "Librarian_plots.zip";
-
-        let plots = [];
-        for (let img of imgs){
-            let file = {}
-            file['name'] = img.id;
-            file['url'] = img.src;
-            plots.push(file);
-        }
         
         //Retrieve samples assignment table
         let csv_data = table_to_csv('samples_table');
         zip.file('samples_assignment.csv', csv_data, {binary:true});
         
-        plots.forEach(function(url){
-            var filename = url['name'];
-            // loading a file and add it in a zip file
-            JSZipUtils.getBinaryContent(url['url'], function (err, data) {
-                if(err) {
-                    throw err; // or handle the error
-                }
-                zip.file(filename, data, {binary:true});
-                count++;
-                if (count == plots.length) {
-                    zip.generateAsync({type:'blob'}).then(function(content) {
-                        saveAs(content, zipFilename);
-                    });
-                }
-            });
+        plots.forEach(function(plot){
+            zip.file(plot.filename, plot.plot, {base64:true});
+        });
+
+        zip.generateAsync({type:'blob'}).then(function(content) {
+            saveAs(content, zipFilename);
         });
     }
 })

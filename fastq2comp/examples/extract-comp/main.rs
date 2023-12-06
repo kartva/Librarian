@@ -34,7 +34,7 @@ fn main() {
 
     let result = run_json(FASTQReader::new(SampleArgs {target_read_count: cli.target_read_count, ..SampleArgs::default()}, &mut reader));
 
-    let mut file = match File::create(&PathBuf::from("out.json")) {
+    let mut file = match File::create(PathBuf::from("out.json")) {
         Err(why) => panic!("Couldn't open output JSON file: {} (pwd is {:?})", why, std::env::current_dir().unwrap()),
         Ok(file) => file,
     };

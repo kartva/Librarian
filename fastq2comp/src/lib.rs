@@ -198,6 +198,48 @@ impl FromIterator<usize> for BaseCompColBases {
     }
 }
 
+/// Represents the entire base composition.
+/// As a Vec of `BaseCompCol`(umns), each of which hold data for a single column.
+/// Also holds data on how many reads were read to produce the compositions.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BaseComp {
+    pub lib: Vec<BaseCompCol>,
+    reads_read: u64,
+}
+
+impl BaseComp {
+    pub fn init(len: usize) -> BaseComp {
+        let mut base_comp = BaseComp {
+            lib: Vec::with_capacity(len),
+            reads_read: 0,
+        };
+        for i in 1..=len {
+            base_comp.lib.push(BaseCompCol::new(i));
+        }
+
+        base_comp
+    }
+
+    pub fn reads_read(&self) -> u64 {
+        self.reads_read
+    }
+
+    pub fn len(&self) -> usize {
+        self.lib.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn extract(&mut self, s: &str) {
+        for c in s.as_bytes().iter().enumerate() {
+            self.lib[c.0].extract(c.1);
+        }
+        self.reads_read += 1;
+    }
+}
+
 #[cfg(test)]
 mod col_base_comp_tests {
     use super::*;
@@ -294,47 +336,5 @@ impl BaseCompCol {
                 s.to_ascii_lowercase()
             ),
         }
-    }
-}
-
-/// Represents the entire base composition.
-/// As a Vec of `BaseCompCol`(umns), each of which hold data for a single column.
-/// Also holds data on how many reads were read to produce the compositions.
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BaseComp {
-    pub lib: Vec<BaseCompCol>,
-    reads_read: u64,
-}
-
-impl BaseComp {
-    pub fn init(len: usize) -> BaseComp {
-        let mut base_comp = BaseComp {
-            lib: Vec::with_capacity(len),
-            reads_read: 0,
-        };
-        for i in 1..=len {
-            base_comp.lib.push(BaseCompCol::new(i));
-        }
-
-        base_comp
-    }
-
-    pub fn reads_read(&self) -> u64 {
-        self.reads_read
-    }
-
-    pub fn len(&self) -> usize {
-        self.lib.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn extract(&mut self, s: &str) {
-        for c in s.as_bytes().iter().enumerate() {
-            self.lib[c.0].extract(c.1);
-        }
-        self.reads_read += 1;
     }
 }

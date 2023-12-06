@@ -1,56 +1,17 @@
 use fastq2comp::BaseComp;
-use log::{self, debug, log_enabled, trace, warn, error, info};
+use log::{self, debug, error, log_enabled, warn};
 use std::{
+    fmt::{Display, Write as _},
     fs::{read_dir, File},
     io::{Read, Write},
+    path::{PathBuf, Path},
     process::{Command, Stdio},
-    fmt::Write as _, ops::Deref,
 };
 use thiserror::Error;
 
-const R_SCRIPT_RUN: &str = r#""rmarkdown::render('scripts/Librarian_analysis.Rmd')""#;
+mod tempdir;
 
-struct TempDir {
-    path: String,
-}
-
-impl TempDir {
-    fn new() -> Self {
-        let tmpdir = String::from_utf8_lossy(
-            &Command::new("mktemp")
-                .arg("-d")
-                .output()
-                .expect("Temporary file creation failed.")
-                .stdout, // removes the \n which mktemp appends
-        )
-        .to_string()
-        .split('\n')
-        .next()
-        .unwrap()
-        .to_owned();
-
-        debug!("Tempdir: {:?}", tmpdir);
-
-        Self { path: tmpdir }
-    }
-}
-
-impl Deref for TempDir {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.path
-    }
-}
-
-impl Drop for TempDir {
-    fn drop(&mut self) {
-        trace!("Deleting files.");
-        std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
-    }
-}
-
-#[derive(Debug, Error)]
+#[derive(Error)]
 pub enum PlotError {
     #[error("R script exited unsuccessfully")]
     RExit,
@@ -58,56 +19,145 @@ pub enum PlotError {
     DirErr(#[from] std::io::Error),
 }
 
+impl std::fmt::Debug for PlotError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self, f)
+    }
+}
+
 impl actix_web::error::ResponseError for PlotError {}
 
 use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FileComp {
+    pub name: String,
+    #[serde(flatten)]
+    pub comp: BaseComp,
+}
+
+use crate::tempdir::TempDir;
 /// Describes a plot; which has a filename and data.
+/// The data has a custom `serde` serialize and deserialize implementation:
+/// it is converted into base64 upon serialization and back.
 #[derive(Serialize, Deserialize)]
 pub struct Plot {
     /// Raw plot data - in svg
-    // since it's svg, we'll be safe in using a String
-    pub plot: String,
+    #[serde(serialize_with = "serialize_plot")]
+    #[serde(deserialize_with = "deserialize_plot")]
+    pub plot: Vec<u8>,
     pub filename: String,
+}
+
+// initialize base64 engine
+use base64::{
+    alphabet,
+    engine::{self, general_purpose},
+    Engine as _,
+};
+
+const CUSTOM_ENGINE: engine::GeneralPurpose =
+    engine::GeneralPurpose::new(&alphabet::STANDARD, general_purpose::PAD);
+
+use serde::{de::Visitor, Deserializer, Serializer};
+
+fn serialize_plot<S>(buf: &[u8], ser: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let b64_buf = CUSTOM_ENGINE.encode(buf);
+    ser.serialize_str(&b64_buf)
+}
+
+struct Base64Visitor;
+impl<'de> Visitor<'de> for Base64Visitor {
+    type Value = Vec<u8>;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a byte slice")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        CUSTOM_ENGINE
+            .decode(v)
+            .map_err(|e| serde::de::Error::custom(e))
+    }
+}
+
+fn deserialize_plot<'de, D>(de: D) -> Result<Vec<u8>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    de.deserialize_str(Base64Visitor)
 }
 
 impl std::fmt::Debug for Plot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.filename.fmt(f)
+        std::fmt::Debug::fmt(&self.filename, f)
     }
 }
 
-pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
-    assert!(!comp.is_empty());
+pub fn get_script_path () -> PathBuf {
+    // This is a hack
+    // cargo run runs the binary stored somewhere in target
+    // in the working directory where scripts/exec_analysis.sh is present
+    // however in the release version, we don't want to look in the
+    // current working directory for the scripts folder
+    // and instead look in the same directory as the executable
+    
+    if cfg!(debug_assertions) {
+        PathBuf::from("server/scripts")
+    } else {
+        std::env::current_exe()
+            .expect("current executable path should be found")
+            .parent()
+            .expect("parent directory should be found").join("scripts")
+    }
+}
 
-    let mut input = String::new();
+pub fn serialize_comps_for_script (comp: Vec<FileComp>) -> String {
+    let mut ser = String::new();
 
     for (i, c) in comp.into_iter().enumerate() {
-        write!(&mut input, "sample_{:02}\t", i + 1).unwrap(); // this unwrap never fails
-        c.lib
+        write!(
+            &mut ser,
+            "sample_{:02}\tsample_{}\t",
+            i + 1,
+            c.name
+        )
+        .unwrap(); // this unwrap never fails
+        c.comp.lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
-            .for_each(|curr| input.push_str(&(curr.to_string() + "\t")));
-        input.pop(); // remove trailing '\t' to make it valid tsv
-        input.push('\n');
+            .for_each(|curr| ser.push_str(&(curr.to_string() + "\t")));
+        ser.pop(); // remove trailing '\t' to make it valid tsv
+        ser.push('\n');
     }
-    trace!("Input: {:?}", &input);
+    debug!("Input: {:?}", &ser);
 
-    let tmpdir = TempDir::new();
+    ser
+}
 
-    let debug_stream = || if log_enabled!(log::Level::Debug) {
-        Stdio::piped()
-    } else {
-        Stdio::null()
+pub fn run_script (scripts_path: &Path, working_dir: &Path, input: String) -> Result<(), PlotError> {
+    let stream_type = || {
+        if log_enabled!(log::Level::Debug) {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        }
     };
 
-    let mut child = Command::new("Rscript")
+    debug!("Accessing script directory at path {:?}", scripts_path);
+
+    let mut child = Command::new("bash")
         .stdin(Stdio::piped())
-        .stdout(debug_stream())
-        .stderr(debug_stream())
-        .arg("-e")
-        .arg(R_SCRIPT_RUN)
-        .arg("--args")
-        .arg(&*tmpdir)
+        .stdout(stream_type())
+        .stderr(stream_type())
+        .arg(scripts_path.join("exec_analysis.sh"))
+        .arg(scripts_path.join("Librarian_analysis.Rmd"))
+        .arg(working_dir)
         .spawn()
         .expect("Failed to spawn child process");
 
@@ -119,25 +169,27 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
             .expect("Failed to write to stdin")
     });
 
-    if log_enabled!(log::Level::Debug) {
-        let mut buf = String::new();
-        child
-            .stdout
-            .as_mut()
-            .unwrap()
-            .read_to_string(&mut buf)
-            .expect("Error reading stdout");
-        debug!("Rscript stdout: {}", buf);
+    let stdout = child.stdout.take();
+    std::thread::spawn(move || {
+        if let Some(mut stdout) = stdout {
+            let mut buf = String::new();
+            stdout
+                .read_to_string(&mut buf)
+                .expect("Error reading stdout");
+            debug!("Rscript stdout: {}", buf);
+        }
+    });
 
-        let mut buf = String::new();
-        child
-            .stderr
-            .as_mut()
-            .unwrap()
-            .read_to_string(&mut buf)
-            .expect("Error reading stderr");
-        debug!("Rscript stderr: {}", buf);
-    }
+    let stderr = child.stderr.take();
+    std::thread::spawn(move || {
+        if let Some(mut stderr) = stderr {
+            let mut buf = String::new();
+            stderr
+                .read_to_string(&mut buf)
+                .expect("Error reading stderr");
+            debug!("Rscript stderr: {}", buf);
+        }
+    });
 
     let exit_status = child.wait().expect("Error waiting on child to exit.");
     if !exit_status.success() {
@@ -147,25 +199,39 @@ pub fn plot_comp(comp: Vec<BaseComp>) -> Result<Vec<Plot>, PlotError> {
 
     debug!("Child executed successfuly.");
 
-    let out_arr = read_dir(&*tmpdir)?
+    Ok(())
+}
+
+pub fn plot_comp(comp: Vec<FileComp>) -> Result<Vec<Plot>, PlotError> {
+    assert!(!comp.is_empty());
+
+    let working_dir = TempDir::new();
+
+    let input = serialize_comps_for_script(comp);
+
+    let scripts_path = get_script_path();
+
+    run_script(&scripts_path, working_dir.as_ref(), input)?;
+
+    let out_arr = read_dir(&*working_dir)?
         .filter_map(|e| {
             if e.is_err() {
-                warn!("Error iterating over dir {:?}, skipping file.", *tmpdir)
+                warn!("Error iterating over dir {:?}, skipping file.", *working_dir)
             };
             e.ok()
         })
         .filter_map(|e| {
-            let filename = e.file_name().to_string_lossy().to_string();
-            let f = File::open(e.path());
-            if f.is_err() {
-                warn!("Error opening file {:?} due to error {:?}", e.path(), &f);
-                return None;
-            };
-            let mut buf = String::new();
-            if let Err(err) = f.unwrap().read_to_string(&mut buf) {
-                warn!("Error reading file {:?} due to error {:?}", e.path(), err);
-                return None;
-            }
+            let e = e.path();
+
+            let filename = e.file_name()?.to_string_lossy().to_string();
+            let mut f = File::open(&e)
+                .map_err(|f| warn!("Error opening file {:?} due to error {:?}", &e, &f))
+                .ok()?;
+            let mut buf = Vec::new();
+            f.read_to_end(&mut buf)
+                .map_err(|f| warn!("Error reading file {:?} due to error {:?}", &e, &f))
+                .ok()?;
+
             Some(Plot {
                 plot: buf,
                 filename,

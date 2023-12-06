@@ -1,5 +1,6 @@
 # Server
 Serves the webpages in `frontend/dist` along with running backend services.
+
 ## Setup:
 
 ```bash
@@ -8,29 +9,29 @@ docker run -dp 8186:8186 desmondwillowbrook/librarian-server
 ```
 
 ### Non-Docker setup
-Install:
+
+#### Build dependencies
 - [`npm`](https://www.npmjs.com/get-npm)
 - [`Rust (with Cargo)`](https://www.rust-lang.org/) 
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
-- R
+
+#### Runtime dependencies
+The `scripts` folder included with the binary should be in the same directory as the binary. `Rscript` should be present in $PATH.
 
 ```bash
 apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml2-dev
-Rscript -e 'install.packages(c("tidyverse", "umap", "svglite", "ggrastr")) '
-Rscript -e 'install.packages("remotes")'
-Rscript -e 'remotes::install_github("rstudio/pins")'
+Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "pins", "rmarkdown"))'
 ```
+
+#### Building from source
 
 ```bash
 git clone https://github.com/DesmondWillowbrook/Librarian.git
 cd Librarian
-```
-
-```bash
 ./run.sh
 ```
 
-Alternatively, in case you haven't made any changes to the frontend, you can just run the server binary without rebuilding the frontend.
+Alternatively, in case you haven't made any changes to the frontend, you can just run the server binary without rebuilding the frontend website.
 
 ```
 cd server
@@ -46,3 +47,5 @@ cargo run --release
 ```
 RUST_LOG=trace cargo run --release
 ```
+
+**NOTE:** Setting `RUST_LOG` to `trace` will cause the server to not delete temporary directories after use. This is useful for debugging purposes.
