@@ -33,6 +33,11 @@ A: Librarian is specifically for Illumina samples. Other sequencing technologies
 A: No. Librarian will extract base compositions from a random selection of 100 000 reads. Only the compositions will be submitted to the web server.
 
 
+### Q: I have paired-end data. Which read should I upload?
+
+A: This depends on the library type. Consider the following questions: Is one of your reads and index read (e. g. read 1 in 10X scRNA-seq)? Don't use that one as it won't be informative. Will your reads be substantially different? For example, for standard ChIP-seq, both reads will be very similar, whereas for PBAT libraries they will be very different. The compositions reference database was constructed on read 1 for paired end data. Therefore, if none of your reads is an index read, stick with read 1. 
+
+
 ### Q: Do you collect any data from samples submitted to the web app?
 
 A: No.
@@ -41,6 +46,8 @@ A: No.
 ### Q: When I try to upload a file to web app, fastq.gz files are greyed out. Shouldn't this work?
 
 A: This seems to be an issue outside Librarian which we found happens on some Mac/browser combinations. Try drag & dropping the file onto the upload button instead.
+
+
 
 
 
