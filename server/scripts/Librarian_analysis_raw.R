@@ -21,7 +21,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 ## creating the pin board
 
-board <- board_folder(".")
+board <- board_folder(args[2])
 
 ## loading the pinned model and coordinates
 
@@ -152,6 +152,6 @@ test_percentage %>%
   select(sample_name, library_type, percent) %>% 
   pivot_wider(names_from = library_type, values_from = percent) -> probabilities_wide
 
-write_tsv(probabilities_wide, file = file.path(args[2], "librarian_heatmap.txt"))
+write_tsv(probabilities_wide, file = file.path(args[3], "librarian_heatmap.txt"))
 
 

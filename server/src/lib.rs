@@ -10,6 +10,7 @@ use std::{
 use thiserror::Error;
 
 mod tempdir;
+mod script_paths;
 
 #[derive(Error)]
 pub enum PlotError {
@@ -99,7 +100,12 @@ impl std::fmt::Debug for Plot {
     }
 }
 
-pub fn get_script_path () -> PathBuf {
+pub enum ScriptOptions {
+    FullAnalysis,
+    HeatMapOnly,
+}
+
+pub fn get_script_path (opt: ScriptOptions) -> PathBuf {
     // This is a hack
     // cargo run runs the binary stored somewhere in target
     // in the working directory where scripts/exec_analysis.sh is present
@@ -107,13 +113,18 @@ pub fn get_script_path () -> PathBuf {
     // current working directory for the scripts folder
     // and instead look in the same directory as the executable
     
-    if cfg!(debug_assertions) {
+    let dir = if cfg!(debug_assertions) {
         PathBuf::from("server/scripts")
     } else {
         std::env::current_exe()
             .expect("current executable path should be found")
             .parent()
             .expect("parent directory should be found").join("scripts")
+    };
+
+    match opt {
+        ScriptOptions::FullAnalysis => dir.join(script_paths::FULL_ANALYSIS_PATH),
+        ScriptOptions::HeatMapOnly => dir.join(script_paths::HEATMAP_ONLY_PATH),
     }
 }
 
@@ -140,7 +151,7 @@ pub fn serialize_comps_for_script (comp: Vec<FileComp>) -> String {
     ser
 }
 
-pub fn run_script (scripts_path: &Path, working_dir: &Path, input: String) -> Result<(), PlotError> {
+pub fn run_script (script_path: &Path, out_dir: &Path, input: String) -> Result<(), PlotError> {
     let stream_type = || {
         if log_enabled!(log::Level::Debug) {
             Stdio::piped()
@@ -149,15 +160,14 @@ pub fn run_script (scripts_path: &Path, working_dir: &Path, input: String) -> Re
         }
     };
 
-    debug!("Accessing script directory at path {:?}", scripts_path);
+    debug!("Accessing script at path {:?}", script_path);
 
     let mut child = Command::new("bash")
         .stdin(Stdio::piped())
         .stdout(stream_type())
         .stderr(stream_type())
-        .arg(scripts_path.join("exec_analysis.sh"))
-        .arg(scripts_path.join("Librarian_analysis.Rmd"))
-        .arg(working_dir)
+        .arg(script_path)
+        .arg(out_dir)
         .spawn()
         .expect("Failed to spawn child process");
 
@@ -209,7 +219,7 @@ pub fn plot_comp(comp: Vec<FileComp>) -> Result<Vec<Plot>, PlotError> {
 
     let input = serialize_comps_for_script(comp);
 
-    let scripts_path = get_script_path();
+    let scripts_path = get_script_path(ScriptOptions::FullAnalysis);
 
     run_script(&scripts_path, working_dir.as_ref(), input)?;
 

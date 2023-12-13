@@ -49,6 +49,13 @@ struct Cli {
     /// 
     #[structopt(short, long, conflicts_with("api"))]
     pub local: bool,
+
+    /// Only output the librarian_heatmap.txt file used by MultiQC, and don't output any plots.
+    /// 
+    /// This option requires `local` to be set.
+    /// 
+    #[structopt(long, requires("local"))]
+    pub raw: bool,
 }
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -174,13 +181,18 @@ fn query_server(url: String, comps: Vec<FileComp>) -> Vec<Plot> {
         .expect("unable to extract JSON from server response. server may be down")
 }
 
-fn query_local(comps: Vec<FileComp>, working_dir: &Path) {
+fn query_local(comps: Vec<FileComp>, working_dir: &Path, raw_only: bool) {
     info!("Running locally, using workdir {:?}", working_dir);
     assert!(!comps.is_empty());
 
     let input = serialize_comps_for_script(comps);
 
-    let scripts_path = get_script_path();
+    let script_opt = if raw_only {
+        server::ScriptOptions::HeatMapOnly
+    } else {
+        server::ScriptOptions::FullAnalysis
+    };
+    let scripts_path = get_script_path(script_opt);
 
     run_script(&scripts_path, working_dir, input).expect("R script should be successful");
 }
