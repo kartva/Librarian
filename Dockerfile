@@ -36,7 +36,7 @@ RUN mkdir /app/out
 
 LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Librarian
 
-ENTRYPOINT ["./librarian", "--local", "--output-dir", "/app/out/"]
+ENTRYPOINT ["./librarian", "--local", "--raw", "--output-dir", "/app/out/"]
 
 # example command to run this image:
 # docker run -v  \ 
