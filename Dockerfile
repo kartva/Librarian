@@ -31,7 +31,7 @@ RUN apt-get update && \
 RUN Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "pins", "rmarkdown"))'
 
 WORKDIR /app
-COPY --from=build /app/librarian_v1.1 ./
+COPY --from=build /app/librarian_v1.2 ./
 RUN mkdir /app/out
 
 LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Librarian
