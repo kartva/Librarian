@@ -71,10 +71,12 @@ fn main() {
         .init()
         .expect("Couldn't initialize logger");
 
-    query(args);
+    query(args).unwrap_or_else(|_| {
+        std::process::exit(1);
+    });
 }
 
-fn query(args: Cli) {
+fn query(args: Cli) -> Result<(), ()> {
     let mut comps = Vec::with_capacity(args.input.len());
 
     for p in args.input {
@@ -116,7 +118,7 @@ fn query(args: Cli) {
 
     if comps.is_empty() {
         error!("No samples could be processed.");
-        return
+        return Err(());
     }
 
     debug!("Compositions: {:#?}", comps);
@@ -127,8 +129,8 @@ fn query(args: Cli) {
             working_dir = std::env::current_dir().unwrap().join(&args.output_dir);
         }
 
-        query_local(comps, &working_dir);
-        info!("{} {:?}", "Created files in ".green(), &working_dir);
+        query_local(comps, &working_dir, args.raw);
+        info!("{} {:?}", "Created files in".green(), &working_dir);
     } else {
         let res = query_server(args.api, comps);
 
@@ -149,6 +151,7 @@ fn query(args: Cli) {
             info!("{} {:?}", "Created".green(), p);
         }
     };
+    return Ok(());
 }
 
 fn query_server(url: String, comps: Vec<FileComp>) -> Vec<Plot> {
