@@ -4,13 +4,13 @@ use std::{
     fmt::{Display, Write as _},
     fs::{read_dir, File},
     io::{Read, Write},
-    path::{PathBuf, Path},
+    os::unix::ffi::OsStringExt,
+    path::{Path, PathBuf},
     process::{Command, Stdio},
 };
 use thiserror::Error;
 
 mod tempdir;
-mod script_paths;
 
 #[derive(Error)]
 pub enum PlotError {
@@ -18,6 +18,10 @@ pub enum PlotError {
     RExit,
     #[error("Error opening directory")]
     DirErr(#[from] std::io::Error),
+    #[error("File path contains \' (single quote) character")]
+    QuoteError,
+    #[error("File path did not contain valid UTF-8")]
+    UnicodeError(#[from] std::string::FromUtf8Error),
 }
 
 impl std::fmt::Debug for PlotError {
@@ -105,41 +109,35 @@ pub enum ScriptOptions {
     HeatMapOnly,
 }
 
-pub fn get_script_path (opt: ScriptOptions) -> PathBuf {
+pub fn get_script_dir() -> PathBuf {
     // This is a hack
     // cargo run runs the binary stored somewhere in target
     // in the working directory where scripts/exec_analysis.sh is present
     // however in the release version, we don't want to look in the
     // current working directory for the scripts folder
     // and instead look in the same directory as the executable
-    
-    let dir = if cfg!(debug_assertions) {
+
+    if cfg!(debug_assertions) {
         PathBuf::from("server/scripts")
     } else {
         std::env::current_exe()
             .expect("current executable path should be found")
             .parent()
-            .expect("parent directory should be found").join("scripts")
-    };
-
-    match opt {
-        ScriptOptions::FullAnalysis => dir.join(script_paths::FULL_ANALYSIS_PATH),
-        ScriptOptions::HeatMapOnly => dir.join(script_paths::HEATMAP_ONLY_PATH),
+            .expect("parent directory should be found")
+            .join("scripts")
     }
 }
 
-pub fn serialize_comps_for_script (comp: Vec<FileComp>) -> String {
+pub fn serialize_comps_for_script(comp: Vec<FileComp>) -> String {
     let mut ser = String::new();
 
-    for (i, c) in comp.into_iter().enumerate() {
-        write!(
-            &mut ser,
-            "sample_{:02}\tsample_{}\t",
-            i + 1,
-            c.name
-        )
-        .unwrap(); // this unwrap never fails
-        c.comp.lib
+    for (i, mut c) in comp.into_iter().enumerate() {
+        // substitute tabs in sample names with spaces
+        c.name = c.name.replace('\t', " ");
+
+        write!(&mut ser, "sample_{:02}\tsample_{}\t", i + 1, c.name).unwrap(); // this unwrap never fails
+        c.comp
+            .lib
             .into_iter()
             .flat_map(|b| b.bases.iter())
             .for_each(|curr| ser.push_str(&(curr.to_string() + "\t")));
@@ -151,7 +149,14 @@ pub fn serialize_comps_for_script (comp: Vec<FileComp>) -> String {
     ser
 }
 
-pub fn run_script (script_path: &Path, out_dir: &Path, input: String) -> Result<(), PlotError> {
+// this function is run by the server for every request
+// it should never panic, only return errors
+pub fn run_script(
+    scripts_dir: &Path,
+    out_dir: &Path,
+    opt: ScriptOptions,
+    input: String,
+) -> Result<(), PlotError> {
     let stream_type = || {
         if log_enabled!(log::Level::Debug) {
             Stdio::piped()
@@ -160,16 +165,60 @@ pub fn run_script (script_path: &Path, out_dir: &Path, input: String) -> Result<
         }
     };
 
-    debug!("Accessing script at path {:?}", script_path);
+    debug!("Accessing script at path {:?}", scripts_dir);
 
-    let mut child = Command::new("bash")
-        .stdin(Stdio::piped())
+    match opt {
+        ScriptOptions::FullAnalysis => debug!("Running full analysis"),
+        ScriptOptions::HeatMapOnly => debug!("Running heatmap only"),
+    }
+
+    let mut cmd = Command::new("Rscript");
+
+    cmd.stdin(Stdio::piped())
         .stdout(stream_type())
-        .stderr(stream_type())
-        .arg(script_path)
-        .arg(out_dir)
-        .spawn()
-        .expect("Failed to spawn child process");
+        .stderr(stream_type());
+
+    match opt {
+        ScriptOptions::FullAnalysis => {
+            let script_path = scripts_dir.join("Librarian_analysis.Rmd");
+
+            fn path_to_str(p: PathBuf) -> Result<String, PlotError> {
+                let p = match String::from_utf8(p.into_os_string().into_vec()) {
+                    Ok(s) => s,
+                    Err(e) => return Err(PlotError::UnicodeError(e)),
+                };
+
+                if p.contains('\'') {
+                    return Err(PlotError::QuoteError);
+                };
+
+                Ok(p)
+            }
+
+            let script_path = path_to_str(script_path)?;
+            let output_dir = path_to_str(out_dir.to_path_buf())?;
+
+            cmd.arg("-e")
+                .arg(format!(
+                    "rmarkdown::render('{script_path}', output_dir = '{output_dir}')"
+                ))
+                .args(["--args", &output_dir]);
+        }
+        ScriptOptions::HeatMapOnly => {
+            cmd.arg(scripts_dir.join("Librarian_analysis_raw.R"))
+                .arg("--args")
+                .args([scripts_dir, out_dir]);
+        }
+    }
+
+    debug!("Creating directory {:?}", out_dir);
+
+    std::fs::create_dir_all(out_dir).map_err(|e| {
+        error!("couldn't create parent directories of {out_dir:?}: error {e:#?}");
+        e
+    })?;
+
+    let mut child = cmd.spawn().expect("Failed to spawn child process");
 
     let mut stdin = child.stdin.take().expect("Failed to open stdin");
 
@@ -219,14 +268,22 @@ pub fn plot_comp(comp: Vec<FileComp>) -> Result<Vec<Plot>, PlotError> {
 
     let input = serialize_comps_for_script(comp);
 
-    let scripts_path = get_script_path(ScriptOptions::FullAnalysis);
+    let script_dir = get_script_dir();
 
-    run_script(&scripts_path, working_dir.as_ref(), input)?;
+    run_script(
+        &script_dir,
+        working_dir.as_ref(),
+        ScriptOptions::FullAnalysis,
+        input,
+    )?;
 
     let out_arr = read_dir(&*working_dir)?
         .filter_map(|e| {
             if e.is_err() {
-                warn!("Error iterating over dir {:?}, skipping file.", *working_dir)
+                warn!(
+                    "Error iterating over dir {:?}, skipping file.",
+                    *working_dir
+                )
             };
             e.ok()
         })

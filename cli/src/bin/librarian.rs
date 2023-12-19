@@ -6,7 +6,7 @@ use std::time::Duration;
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
 use fastq2comp::io_utils;
 use log::{error, info, warn, debug};
-use server::{Plot, get_script_path, serialize_comps_for_script, run_script, FileComp};
+use server::{Plot, get_script_dir, serialize_comps_for_script, run_script, FileComp};
 use simple_logger::SimpleLogger;
 
 use std::io::{BufReader, Write};
@@ -151,7 +151,7 @@ fn query(args: Cli) -> Result<(), ()> {
             info!("{} {:?}", "Created".green(), p);
         }
     };
-    return Ok(());
+    Ok(())
 }
 
 fn query_server(url: String, comps: Vec<FileComp>) -> Vec<Plot> {
@@ -195,7 +195,7 @@ fn query_local(comps: Vec<FileComp>, working_dir: &Path, raw_only: bool) {
     } else {
         server::ScriptOptions::FullAnalysis
     };
-    let scripts_path = get_script_path(script_opt);
+    let script_dir = get_script_dir();
 
-    run_script(&scripts_path, working_dir, input).expect("R script should be successful");
+    run_script(&script_dir, working_dir, script_opt, input).expect("R script should be successful");
 }
