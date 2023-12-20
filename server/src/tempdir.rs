@@ -59,12 +59,12 @@ impl Drop for TempDir {
             return;
         }
 
-        trace!("Deleting files.");
         if log_enabled!(log::Level::Trace) {
-            trace!("Leaving files undeleted since trace is enabled.");
+            trace!("Leaving tempdir files at {:?} undeleted since trace is enabled.", self.path);
             return;
         }
 
+        debug!("Deleting files.");
         std::fs::remove_dir_all(&self.path).expect("Error deleting tmpfile.");
     }
 }
