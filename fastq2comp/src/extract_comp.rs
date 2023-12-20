@@ -435,6 +435,7 @@ pub struct Output {
 }
 
 /// Takes in reader (for FASTQ lines) and SampleArgs, returns [`BaseComp`]
+/// Expects file to be non-empty.
 pub fn run<T>(fastq_reader: FASTQReader<T>) -> BaseComp
 where
     T: BufRead,

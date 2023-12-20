@@ -122,6 +122,21 @@ impl BaseCompCol {
             N: apply(self.N),
         }
     }
+
+    pub fn extract(&mut self, s: &u8) {
+        match s {
+            b'A' => self.A += 1,
+            b'T' => self.T += 1,
+            b'G' => self.G += 1,
+            b'C' => self.C += 1,
+            b'N' => self.N += 1,
+            _ => panic!(
+                "Invalid character {:?} == {:?} found in read",
+                *s as char,
+                s.to_ascii_lowercase()
+            ),
+        }
+    }
 }
 
 impl Default for BaseCompCol {
@@ -255,22 +270,5 @@ mod col_base_comp_tests {
         assert_eq!(read.T, 20, "Testing T");
         assert_eq!(read.G, 20, "Testing G");
         assert_eq!(read.N, 20, "Testing N");
-    }
-}
-
-impl BaseCompCol {
-    pub fn extract(&mut self, s: &u8) {
-        match s {
-            b'A' => self.A += 1,
-            b'T' => self.T += 1,
-            b'G' => self.G += 1,
-            b'C' => self.C += 1,
-            b'N' => self.N += 1,
-            _ => panic!(
-                "Invalid character {:?} == {:?} found in read",
-                *s as char,
-                s.to_ascii_lowercase()
-            ),
-        }
     }
 }

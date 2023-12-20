@@ -1,7 +1,7 @@
 use log::{debug, log_enabled, trace};
 use std::ops::Deref;
 use std::{
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command,
 };
 
@@ -31,16 +31,6 @@ impl TempDir {
         Self {
             path: tmpdir,
             cleanup: true,
-        }
-    }
-
-    /// Create a new TempDir from an existing path.
-    /// Will not delete the directory on drop.
-    pub fn from_dir(path: &Path) -> Self {
-        let path = path.to_path_buf();
-        Self {
-            path,
-            cleanup: false,
         }
     }
 }
