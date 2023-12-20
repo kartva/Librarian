@@ -63,90 +63,41 @@ pub mod io_utils {
 
 use serde::{Deserialize, Serialize};
 
-/// Represents a column of base composition data.
-/// Contains base composition along with position information.
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-#[allow(non_snake_case)]
-pub struct BaseCompCol {
-    pub pos: usize,
-    pub bases: BaseCompColBases,
-}
+type CompCol = u64;
 
-/// Represents a column of base composition.
-/// Used to represent raw state and percentage state as well.
+/// Represents a column of base compositions.
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Copy, Clone)]
 #[allow(non_snake_case)]
-pub struct BaseCompColBases {
-    pub A: usize,
-    pub T: usize,
-    pub G: usize,
-    pub C: usize,
-    pub N: usize,
+pub struct BaseCompCol {
+    pub A: CompCol,
+    pub T: CompCol,
+    pub G: CompCol,
+    pub C: CompCol,
+    pub N: CompCol,
 }
 
-/// Convenience struct for iterating over base composition
-pub(crate) struct IterableBaseCompColBases {
-    bases: BaseCompColBases,
-    state: BaseCompColBasesIteratorState,
+type PercentageCompCol = u64;
+
+/// Represents a percentage of base composition.
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Copy, Clone)]
+#[allow(non_snake_case)]
+pub struct BaseCompColBasesPercentage {
+    pub A: PercentageCompCol,
+    pub T: PercentageCompCol,
+    pub G: PercentageCompCol,
+    pub C: PercentageCompCol,
+    pub N: PercentageCompCol,
 }
 
-impl Iterator for IterableBaseCompColBases {
-    type Item = usize;
-
-    // VERY VERY IMP. If you change this, then also change the impl FromIterator<usize> for BaseCompColBases
-    fn next(&mut self) -> Option<usize> {
-        match self.state {
-            BaseCompColBasesIteratorState::A => {
-                self.state = BaseCompColBasesIteratorState::C;
-                Some(self.bases.A)
-            }
-            BaseCompColBasesIteratorState::C => {
-                self.state = BaseCompColBasesIteratorState::G;
-                Some(self.bases.C)
-            }
-            BaseCompColBasesIteratorState::G => {
-                self.state = BaseCompColBasesIteratorState::T;
-                Some(self.bases.G)
-            }
-            BaseCompColBasesIteratorState::T => {
-                self.state = BaseCompColBasesIteratorState::N;
-                Some(self.bases.T)
-            }
-            BaseCompColBasesIteratorState::N => {
-                self.state = BaseCompColBasesIteratorState::End;
-                Some(self.bases.N)
-            }
-            _ => None,
-        }
+impl BaseCompColBasesPercentage {
+    pub fn as_array(self) -> [PercentageCompCol; 5] {
+        [self.A, self.C, self.G, self.T, self.N]
     }
 }
 
-impl From<BaseCompColBases> for IterableBaseCompColBases {
-    fn from(base_comp_col_bases: BaseCompColBases) -> IterableBaseCompColBases {
-        IterableBaseCompColBases {
-            bases: base_comp_col_bases,
-            state: BaseCompColBasesIteratorState::A,
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub(crate) enum BaseCompColBasesIteratorState {
-    A,
-    C,
-    G,
-    T,
-    N,
-    End,
-}
-
-impl BaseCompColBases {
-    pub fn iter(self) -> impl Iterator<Item = usize> {
-        IntoIterator::into_iter(IterableBaseCompColBases::from(self))
-    }
-
-    pub fn new() -> BaseCompColBases {
-        BaseCompColBases {
+impl BaseCompCol {
+    pub fn new() -> BaseCompCol {
+        BaseCompCol {
             A: 0,
             G: 0,
             T: 0,
@@ -155,66 +106,67 @@ impl BaseCompColBases {
         }
     }
 
-    pub fn percentage(&mut self) {
-        let sum = self.iter().sum::<usize>();
-        *self = self.iter().map(|base| (base * 100) / sum).collect();
+    pub fn as_array(&self) -> [CompCol; 5] {
+        [self.A, self.C, self.G, self.T, self.N]
+    }
+
+    pub fn percentage(self) -> BaseCompColBasesPercentage {
+        let sum = self.as_array().iter().sum::<u64>();
+        let apply = |base: u64| (base * 100) / sum;
+        
+        BaseCompColBasesPercentage {
+            A: apply(self.A),
+            C: apply(self.C),
+            G: apply(self.G),
+            T: apply(self.T),
+            N: apply(self.N),
+        }
     }
 }
 
-impl Default for BaseCompColBases {
+impl Default for BaseCompCol {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-use std::iter::FromIterator;
-impl FromIterator<usize> for BaseCompColBases {
-    fn from_iter<I: IntoIterator<Item = usize>>(iter: I) -> Self {
-        let mut c = IterableBaseCompColBases::from(BaseCompColBases {
-            A: 0,
-            G: 0,
-            C: 0,
-            T: 0,
-            N: 0,
-        });
-        let mut iter = iter.into_iter();
-
-        for ele in &mut
-        // VERY VERY IMP. If you change this, then also change the impl Iterator for IterableBaseCompColBases
-        // so the corresponding bases are collected into their corresponding spaces
-            [&mut c.bases.A,
-             &mut c.bases.C,
-             &mut c.bases.G,
-             &mut c.bases.T,
-             &mut c.bases.N].iter_mut()
-        {
-            **ele = match iter.next() {
-                Some(n) => n,
-                None => panic!("Improper iterator recieved"),
-            }
-        }
-
-        c.bases
     }
 }
 
 /// Represents the entire base composition.
 /// As a Vec of `BaseCompCol`(umns), each of which hold data for a single column.
 /// Also holds data on how many reads were read to produce the compositions.
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BaseComp {
+#[derive(Debug)]
+pub struct RawBaseComp {
     pub lib: Vec<BaseCompCol>,
     reads_read: u64,
 }
 
-impl BaseComp {
-    pub fn init(len: usize) -> BaseComp {
-        let mut base_comp = BaseComp {
-            lib: Vec::with_capacity(len),
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BaseComp {
+    pub lib: Vec<BaseCompColBasesPercentage>,
+    reads_read: u64,
+}
+
+impl RawBaseComp {
+    /// Expects `seqs` to have at least one element.
+    pub fn create<S: AsRef<str>, I: IntoIterator<Item = S>>(seqs: I) -> RawBaseComp {
+        let mut seqs = seqs.into_iter();
+        let first = seqs.next().unwrap();
+        let first = first.as_ref();
+
+        let mut base_comp = RawBaseComp {
+            lib: Vec::with_capacity(first.len()),
             reads_read: 0,
         };
-        for i in 1..=len {
-            base_comp.lib.push(BaseCompCol::new(i));
+        for _ in 0..first.len() {
+            base_comp.lib.push(BaseCompCol::new());
+        }
+
+        base_comp.extract(first);
+        for seq in seqs {
+            let seq = seq.as_ref();
+            if seq.is_empty() {
+                break;
+            }
+            base_comp.extract(seq);
         }
 
         base_comp
@@ -232,11 +184,37 @@ impl BaseComp {
         self.len() == 0
     }
 
-    pub fn extract(&mut self, s: &str) {
+    fn extract(&mut self, s: &str) {
         for c in s.as_bytes().iter().enumerate() {
             self.lib[c.0].extract(c.1);
         }
         self.reads_read += 1;
+    }
+
+    pub fn percentage(self) -> BaseComp {
+        let mut base_comp = BaseComp {
+            lib: Vec::with_capacity(self.len()),
+            reads_read: self.reads_read,
+        };
+        for col in self.lib.iter() {
+            base_comp.lib.push(col.percentage());
+        }
+
+        base_comp
+    }
+}
+
+impl BaseComp {
+    pub fn reads_read(&self) -> u64 {
+        self.reads_read
+    }
+
+    pub fn len(&self) -> usize {
+        self.lib.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -245,91 +223,49 @@ mod col_base_comp_tests {
     use super::*;
 
     #[test]
-    fn test_iterability() {
-        // test if conversion TO iterator works
-        let mut read = BaseCompCol::new(0);
-        read.extract(&b'A');
-
-        let mut iter = read.bases.iter();
-        assert_eq!(iter.next().unwrap(), 1);
-        assert_eq!(iter.next().unwrap(), 0);
-
-        // test if converstion FROM iterator works
-        let mut read = BaseCompCol::new(0);
-        read.extract(&b'A');
-
-        let iter = read.bases.iter();
-        let converted_read: BaseCompColBases = iter.collect();
-
-        assert_eq!(
-            converted_read,
-            BaseCompColBases {
-                A: 1,
-                T: 0,
-                G: 0,
-                C: 0,
-                N: 0
-            }
-        );
-    }
-
-    #[test]
     fn test_extract() {
-        let mut read = BaseCompCol::new(0);
+        let mut read = BaseCompCol::new();
         read.extract(&b'A');
-        assert_eq!(read.bases.A, 1);
+        assert_eq!(read.A, 1);
 
         read.extract(&b'C');
-        assert_eq!(read.bases.C, 1);
+        assert_eq!(read.C, 1);
 
         read.extract(&b'T');
-        assert_eq!(read.bases.T, 1);
+        assert_eq!(read.T, 1);
 
         read.extract(&b'G');
-        assert_eq!(read.bases.G, 1);
+        assert_eq!(read.G, 1);
 
         read.extract(&b'N');
-        assert_eq!(read.bases.N, 1);
+        assert_eq!(read.N, 1);
     }
     #[test]
     fn test_percentage() {
-        let mut read = BaseCompCol::new(0);
+        let mut read = BaseCompCol::new();
         for c in "ACTGN".as_bytes().iter() {
             read.extract(c);
         }
-        read.bases.percentage();
+        let read = read.percentage();
 
         println!("{:?}", read);
 
-        assert_eq!(read.bases.A, 20, "Testing A");
-        assert_eq!(read.bases.C, 20, "Testing C");
-        assert_eq!(read.bases.T, 20, "Testing T");
-        assert_eq!(read.bases.G, 20, "Testing G");
-        assert_eq!(read.bases.N, 20, "Testing N");
+        assert_eq!(read.A, 20, "Testing A");
+        assert_eq!(read.C, 20, "Testing C");
+        assert_eq!(read.T, 20, "Testing T");
+        assert_eq!(read.G, 20, "Testing G");
+        assert_eq!(read.N, 20, "Testing N");
     }
 }
 
 impl BaseCompCol {
-    pub fn new(pos: usize) -> BaseCompCol {
-        BaseCompCol {
-            pos,
-            bases: BaseCompColBases {
-                A: 0,
-                T: 0,
-                G: 0,
-                C: 0,
-                N: 0,
-            },
-        }
-    }
-
     pub fn extract(&mut self, s: &u8) {
         match s {
-            b'A' => self.bases.A += 1,
-            b'T' => self.bases.T += 1,
-            b'G' => self.bases.G += 1,
-            b'C' => self.bases.C += 1,
-            b'N' => self.bases.N += 1,
+            b'A' => self.A += 1,
+            b'T' => self.T += 1,
+            b'G' => self.G += 1,
+            b'C' => self.C += 1,
+            b'N' => self.N += 1,
             _ => panic!(
                 "Invalid character {:?} == {:?} found in read",
                 *s as char,

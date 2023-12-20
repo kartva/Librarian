@@ -1,4 +1,4 @@
-use crate::BaseComp;
+use crate::{RawBaseComp, BaseComp};
 use std::io::BufRead;
 
 #[cfg(test)]
@@ -81,7 +81,7 @@ AAAAANNNNN
 #[cfg(test)]
 mod test_runs {
     use super::*;
-    use crate::{test_utils::*, BaseCompColBases};
+    use crate::{test_utils::*, BaseCompColBasesPercentage};
 
     #[test]
     fn test_json_run() {
@@ -97,7 +97,7 @@ mod test_runs {
 
         assert_eq!(
             result,
-            std::str::from_utf8(b"{\"lib\":[{\"pos\":1,\"bases\":{\"A\":100,\"T\":0,\"G\":0,\"C\":0,\"N\":0}},{\"pos\":2,\"bases\":{\"A\":100,\"T\":0,\"G\":0,\"C\":0,\"N\":0}}],\"reads_read\":1}").unwrap()
+            std::str::from_utf8(b"{\"lib\":[{\"A\":100,\"T\":0,\"G\":0,\"C\":0,\"N\":0},{\"A\":100,\"T\":0,\"G\":0,\"C\":0,\"N\":0}],\"reads_read\":1}").unwrap()
         );
     }
 
@@ -171,8 +171,8 @@ NNNNN
         let res = run(FASTQReader::new(args, reader));
         assert_eq!(res.reads_read(), 7);
         assert_eq!(
-            res.lib[0].bases,
-            BaseCompColBases {
+            res.lib[0],
+            BaseCompColBasesPercentage {
                 A: 28,
                 T: 57,
                 G: 0,
@@ -373,21 +373,16 @@ Example output (example has whitespace to make it readable, output will not have
 {
     lib: [
         {
-            pos: 1,
-            bases: {
-                "A":100
-                "T":0
-                "G":0,
-                "C":0,
-                "N":0
-            }
+            "A":100
+            "T":0
+            "G":0,
+            "C":0,
+            "N":0
         }
     ],
     reads_read: 1
 }
 ```
-Note: Reads read counts _number_ of reads read,
-while pos represents the _column_ of reads whose percentage is being displayed.
 */
 pub fn run_json<T>(fastq_reader: FASTQReader<T>) -> String
 where
@@ -423,7 +418,7 @@ where
             let mut s = comp
                 .lib
                 .into_iter()
-                .flat_map(|b| b.bases.iter())
+                .flat_map(|b| b.as_array())
                 .fold(String::new(), |acc, curr| acc + &curr.to_string() + "\t");
             s.pop(); // remove trailing ',' to make it valid tsv
             s
@@ -444,24 +439,12 @@ pub fn run<T>(fastq_reader: FASTQReader<T>) -> BaseComp
 where
     T: BufRead,
 {
-    //TODO: Convert args.target_read_count to usize or figure out how to allocate u64-sized vec
     let sampled_seqs = fastq_reader.sample_random();
 
     // Figure out allotment size based on line size, or provided trim len
-    let mut base_comp = BaseComp::init(sampled_seqs[0].len());
+    let base_comp = RawBaseComp::create(sampled_seqs.as_slice());
 
-    for seq in sampled_seqs {
-        if seq.is_empty() {
-            break;
-        }
-        base_comp.extract(&seq);
-    }
-
-    for r in base_comp.lib.iter_mut() {
-        r.bases.percentage();
-    }
-
-    base_comp
+    base_comp.percentage()
 }
 
 pub struct FASTQReader<T: BufRead> {

@@ -139,7 +139,7 @@ pub fn serialize_comps_for_script(comp: Vec<FileComp>) -> String {
         c.comp
             .lib
             .into_iter()
-            .flat_map(|b| b.bases.iter())
+            .flat_map(|b| b.as_array())
             .for_each(|curr| ser.push_str(&(curr.to_string() + "\t")));
         ser.pop(); // remove trailing '\t' to make it valid tsv
         ser.push('\n');
