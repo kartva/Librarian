@@ -49,7 +49,7 @@ CLI binaries can be found in the [Github Releases](https://github.com/DesmondWil
 
 The released binaries are statically linked with `musl`, so there shouldn't be too much in the way of system requirements for the CLI except running Linux.
 
-Running with the `--local` option **requires additional dependencies** to be installed. Refer to the [server README's Runtime Dependencies section](../server/README.md#runtime-dependencies) for a list of the other dependencies. (The CLI tar file includes a copy of the `scripts` folder beside the binary)
+Running with the `--local` option **requires additional dependencies** to be installed. Refer to the [server README's *Runtime Dependencies* section](../server/README.md#runtime-dependencies) for a list of the other dependencies. (The CLI tar file includes a copy of the `scripts` folder beside the binary)
 
 ## Install from source
 Requires a recent version of the [Rust](https://rust-lang.org) toolchain. 
