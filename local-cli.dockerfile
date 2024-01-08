@@ -39,8 +39,9 @@ LABEL org.opencontainers.image.source https://github.com/DesmondWillowbrook/Libr
 ENTRYPOINT ["./librarian", "--local", "--raw", "--output-dir", "/app/out/"]
 
 # example command to run this image:
-# docker run -v  \ 
-# ~/Babraham_Projects/Librarian/frontend/example_inputs/example_inputs/:/app/in # volume mapping from host to container
+# docker run  \ 
+# -v $(pwd):/app/in # volume mapping from host to container
+# -v $(pwd)/out:/app/out # volume mapping from host to container
 # -e RUST_LOG='trace' # set the log level to trace
 # -t desmondwillowbrook/librarian-server # image name
 # /app/in/RNA.example.fastq # path of file relative to mapped volume

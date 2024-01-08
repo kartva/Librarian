@@ -36,7 +36,7 @@ struct Cli {
     /// Defaults to Babraham Bioinformatic's server.
     /// Passed argument is given precedence over environment variable.
     /// 
-    /// If --local is set, this argument is ignored.
+    /// This cannot be set together with `--local`.
     /// 
     #[structopt(long, env = "LIBRARIAN_API_URL", default_value = "https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp")]
     pub api: String,
@@ -45,7 +45,7 @@ struct Cli {
     /// Requires Rscript and other dependencies to be installed, along with the `scripts` folder.
     /// See https://github.com/DesmondWillowbrook/Librarian/blob/master/cli/README.md for more details. 
     /// 
-    /// This cannot be set together with `api`.
+    /// This cannot be set together with `--api`.
     /// 
     #[structopt(short, long, conflicts_with("api"))]
     pub local: bool,
