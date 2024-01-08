@@ -3,7 +3,7 @@
 Queries the Babraham server (or your own!) with supplied FASTQ files and downloads plots.
 
 ```
-Librarian CLI 1.2.0
+Librarian CLI 1.3.0
 A tool to predict the sequencing library type from the base composition of a supplied FastQ file. Uncompresses .gz files
 when reading.
 
@@ -19,10 +19,14 @@ FLAGS:
             installed, along with the `scripts` folder. See
             https://github.com/DesmondWillowbrook/Librarian/blob/master/cli/README.md for more details.
             
-            This cannot be set together with `api`.
+            This cannot be set together with `--api`.
     -q, --quiet      
             Suppresses all output except errors
 
+        --raw        
+            Only output the librarian_heatmap.txt file used by MultiQC, and don't output any plots.
+            
+            This option requires `local` to be set.
     -V, --version    
             Prints version information
 
@@ -32,7 +36,7 @@ OPTIONS:
             Specifies query URL to send prediction request to. Defaults to Babraham Bioinformatic's server. Passed
             argument is given precedence over environment variable.
             
-            If --local is set, this argument is ignored. [env: LIBRARIAN_API_URL=]  [default:
+            This cannot be set together with `--local`. [env: LIBRARIAN_API_URL=]  [default:
             https://www.bioinformatics.babraham.ac.uk/librarian/api/plot_comp]
     -o, --output-dir <output-dir>    
             Output directory (eg. `output_dir/`) [default: ]
@@ -50,6 +54,8 @@ CLI binaries can be found in the [Github Releases](https://github.com/DesmondWil
 The released binaries are statically linked with `musl`, so there shouldn't be too much in the way of system requirements for the CLI except running Linux.
 
 Running with the `--local` option **requires additional dependencies** to be installed. Refer to the [server README's *Runtime Dependencies* section](../server/README.md#runtime-dependencies) for a list of the other dependencies. (The CLI tar file includes a copy of the `scripts` folder beside the binary)
+
+You might find it useful to refer to [the CLI dockerfile](../local-cli.dockerfile) for a list of dependencies.
 
 ## Install from source
 Requires a recent version of the [Rust](https://rust-lang.org) toolchain. 
