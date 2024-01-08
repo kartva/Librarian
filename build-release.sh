@@ -11,7 +11,7 @@ RELEASE_PATH="release"
 mkdir -p $RELEASE_PATH
 
 # get the version number
-VERSION=$(./run-cli.sh --version | awk '{print $NF}')
+VERSION=$(cargo run --release --bin librarian -- --version | awk '{print $NF}')
 DIRNAME="librarian_v$VERSION"
 
 # c creates an archive
