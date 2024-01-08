@@ -1,21 +1,14 @@
 # Server
 Serves the webpages in `frontend/dist` along with running backend services.
 
-## Setup:
+## Installation
 
-```bash
-docker pull docker.io/desmondwillowbrook/librarian-server
-docker run -dp 8186:8186 desmondwillowbrook/librarian-server
-```
-
-### Non-Docker setup
-
-#### Build dependencies
+### Build dependencies
 - [`npm`](https://www.npmjs.com/get-npm)
 - [`Rust (with Cargo)`](https://www.rust-lang.org/) 
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
 
-#### Runtime dependencies
+### Runtime dependencies
 The `scripts` folder included with the binary should be in the same directory as the binary. `Rscript` should be present in $PATH.
 
 ```bash
@@ -23,12 +16,12 @@ apt-get install -y r-base-core r-base-dev libssl-dev libcurl4-openssl-dev libxml
 Rscript -e 'install.packages(c("tidyverse", "umap", "ggrastr", "pins", "rmarkdown"))'
 ```
 
-#### Building from source
+### Building from source
 
 ```bash
 git clone https://github.com/DesmondWillowbrook/Librarian.git
 cd Librarian
-./run.sh
+./run-server.sh
 ```
 
 Alternatively, in case you haven't made any changes to the frontend, you can just run the server binary without rebuilding the frontend website.
