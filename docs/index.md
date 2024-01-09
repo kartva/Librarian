@@ -12,6 +12,7 @@ hide:
 Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures to predict the library type of a given test sample by comparing it against previously published data sets
 from **mouse** and **human**.
 
+The input to Librarian is just a fastq file, the file which your sequencing provided will have given you.  If you have paired end sequencing where you have two fastq files per sample then you use the read1 file.
 
 To help assess the similarity to published data sets, Librarian produces several plots. The examples shown below are
 
