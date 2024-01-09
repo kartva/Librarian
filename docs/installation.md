@@ -5,7 +5,7 @@ hide:
 
 You don't need to install Librarian to use it - if you just have a few libraries to test then you can simply vist the [Online version of Librarian](https://www.bioinformatics.babraham.ac.uk/librarian/) and select your fastq files to analyse.  No sequence data is sent to the server - only aggregated composition data, so your data stays on your machine.
 
-If you have a larger number of files to analyse then you will want to install the program locally by installing the command line version of the program
+If you have a larger number of files to analyse then you will want to install the command line version of the program
 
 
 ## Command line installation
