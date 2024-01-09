@@ -3,7 +3,7 @@ hide:
   - footer
 ---
 
-You don't need to install Librarian to use it - if you just have a few libraries to test then you can simply vist the [Online version of Librarian](https://www.bioinformatics.babraham.ac.uk/librarian/) and select your fastq files to analyse.  No sequence data is sent to the server - only aggregated composition data, so your data stays on your machine.
+You don't need to install Librarian to use it - if you just have a few fastq files to test then you can simply vist the [Online version of Librarian](https://www.bioinformatics.babraham.ac.uk/librarian/) and select your fastq files to analyse.  No sequence data is sent to the server - only aggregated composition data, so your data stays on your machine.
 
 If you have a larger number of files to analyse then you will want to install the command line version of the program
 
@@ -77,7 +77,7 @@ Archive:  example_inputs.zip
   inflating: example_inputs/bisulfite.example.fastq
 ```
 
-So you now have three fastq files with which to test the program.
+So you now have three fastq files with which to test the program.  The example files here are uncompressed, but librarian works just fine with fastq.gz files.
 
 ### Testing a remote run
 At this point you should be able to run the command line program by submitting your composition data to the librarian server for analysis
