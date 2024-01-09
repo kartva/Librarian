@@ -3,7 +3,6 @@ hide:
   - footer
 ---
 
-
 ### Q: My sample doesn't come up as the library type that I expect. How worried do I need to be?
 
 It depends - there can be a number of reasons for this. It could of course be the case that something has gone wrong with the library preparation and the composition isn't what it should be. These are the cases that we want to catch with a QC tool. However, there may be a number of other scenarios in which the top predicition doesn't match the expected library type: 
@@ -24,7 +23,7 @@ A: We chose mouse and human samples to generate the database because of the abun
 
 ### Q: Can Librarian be used for non-Illumina sequencing technologies?
 
-A: Librarian is specifically for Illumina samples. Other sequencing technologies have very different library types.
+A: Librarian is specifically for Illumina samples. The composition biases which librarian uses won't work with data generated on other platforms.
 
 
 
@@ -41,6 +40,11 @@ A: This depends on the library type. Consider the following questions: Is one of
 ### Q: Do you collect any data from samples submitted to the web app?
 
 A: No.
+
+
+### Q: Does it matter what read length I used for my sequencing?
+
+A: Librarian requires at least a 50bp sequencing read to work.  If you have shorter reads than that then the program will not work.  It doesn't matter if you have longer reads,  but only the first 50bp of each read will be used for the analysis.
 
 
 ### Q: When I try to upload a file to web app, fastq.gz files are greyed out. Shouldn't this work?
