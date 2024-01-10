@@ -6,11 +6,13 @@
 
 > A tool to predict the sequencing library type from the base composition of a supplied FastQ file.
 
-Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures for library quality control: Test library compositions are extracted and compared against previously published data sets from **mouse** and **human**.
+For further information, detailed installation instructions and FAQs visit the [documentation pages](https://desmondwillowbrook.github.io/Librarian/).
+
+Reads from high throughput sequencing experiments show base compositions that are characteristic for their library type. For example, data from ATAC-seq, RNA-seq and WGBS-seq libraries show markedly different distributions of G, A, C and T across the reads. Librarian makes use of different composition signatures for library quality control: Test library compositions are extracted and compared against previously published data sets from **mouse** and **human**.
 
 **Please note that composition signatures from other species may vary significantly due to different overall GC content**.
 
-To that end, Librarian produces several plots to help identify library types. For example, it produces the following given the [bisulfite and RNA example files](frontend/example_inputs/):
+To that end, Librarian produces several plots to help identify library types. For example, it produces the following given the [ATAC, bisulfite and RNA example files](frontend/example_inputs/):
 
 - Compositions Map: UMAP representation of compositions of published sequencing data. Different library types are indicated by colours. Compositions of test libraries are projected onto the same manifold and indicated by light green circles.
 

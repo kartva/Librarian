@@ -12,3 +12,4 @@ release/
 **/librarian_heatmap.txt
 **/prediction_plot.*
 **/probability_maps.*
+server/scripts/Librarian/Librarian_offline_analysis.html
