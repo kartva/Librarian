@@ -6,9 +6,9 @@ use crate::{io_utils::get_reader, utils::set_panic_hook};
 
 // Entry points here
 #[wasm_bindgen]
-pub fn run_json_exported(compressed: bool) -> String {
+pub fn run_json_exported(f: web_sys::File) -> String {
     set_panic_hook();
 
-    let fastq_reader = FASTQReader::new(SampleArgs::default(), get_reader(compressed));
+    let fastq_reader = FASTQReader::new(SampleArgs::default(), get_reader(f.into()));
     run_json(fastq_reader)
 }

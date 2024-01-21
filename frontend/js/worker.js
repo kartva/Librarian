@@ -7,12 +7,10 @@ onmessage = async function(e) {
 	let result = [];
 	let res;
 	for (let file of files) {
-		// for communication with exported function 'get_file'
-		self.readFile = file;
 		console.debug(file)
 		
 		try {
-			res = JSON.parse(wasm.run_json_exported("application/x-gzip" == file.type || "application/gzip" == file.type));
+			res = JSON.parse(wasm.run_json_exported(file));
 			// the server depends on the 'name' field to be present
 			res['name'] = file['name']; // retrieve the sample name
 			result.push(res);
