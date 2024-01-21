@@ -22,20 +22,23 @@ pub mod test_utils {
 }
 
 pub mod io_utils {
+    const BUF_CAPACITY: usize = 1024 * 1024;
+
     use flate2::read::GzDecoder;
     use std::fs::OpenOptions;
-    use std::io::{self, BufRead, BufReader, Read, Write};
+    use std::io::{self, BufReader, Read, Write};
     use std::path::PathBuf;
 
     // Reader is a wrapper over BufRead
     // Takes in a PathBuf and open it or if no PathBuf is provided, opens up stdin
     // And provides an interface over the actual reading.
-    pub fn compressed_reader<T: Read + 'static>(reader: T, compressed: bool) -> Box<dyn BufRead> {
-        Box::new(BufReader::new(if compressed {
+    pub fn compressed_reader<T: Read + 'static>(reader: T, compressed: bool) -> BufReader<Box<dyn Read>> {
+        BufReader::with_capacity(BUF_CAPACITY,
+        if compressed {
             Box::new(GzDecoder::new(reader))
         } else {
             Box::new(reader) as Box<dyn Read>
-        }))
+        })
     }
 
     use std::io::ErrorKind;
