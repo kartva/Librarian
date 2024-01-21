@@ -1,7 +1,7 @@
 use colored::Colorize;
 use std::fs::{File, OpenOptions};
 use std::path::{PathBuf, Path};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
 use fastq2comp::io_utils;
@@ -91,10 +91,13 @@ fn query(args: Cli) -> Result<(), ()> {
         let reader =
             io_utils::compressed_reader(f, matches!(p.extension(), Some(ext) if ext == "gz"));
 
+        let now = Instant::now();
         let comp = run(FASTQReader::new(
             SampleArgs::default(),
             BufReader::new(reader),
         ));
+        let elapsed_time = now.elapsed();
+        debug!("Finished processing {p:?} in {}.{:03}s", elapsed_time.as_secs(), elapsed_time.subsec_millis());
 
         let l = comp.reads_read();
         let target_len = SampleArgs::default().target_read_count;
