@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
 use fastq2comp::io_utils;
-use log::{error, info, warn, debug};
+use log::{debug, error, info, trace, warn};
 use server::{Plot, get_script_dir, serialize_comps_for_script, run_script, FileComp};
 use simple_logger::SimpleLogger;
 
@@ -124,7 +124,7 @@ fn query(args: Cli) -> Result<(), ()> {
         return Err(());
     }
 
-    debug!("Compositions: {:#?}", comps);
+    trace!("Compositions: {:#?}", comps);
 
     if args.local {
         let mut working_dir = PathBuf::from(&args.output_dir);
