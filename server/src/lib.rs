@@ -135,7 +135,7 @@ pub fn serialize_comps_for_script(comp: Vec<FileComp>) -> String {
         // substitute tabs in sample names with spaces
         c.name = c.name.replace('\t', " ");
 
-        write!(&mut ser, "sample_{:02}\t{}\t", i + 1, c.name).unwrap(); // this unwrap never fails
+        write!(&mut ser, "{:02}\t{}\t", i + 1, c.name).unwrap(); // this unwrap never fails
         c.comp
             .lib
             .into_iter()

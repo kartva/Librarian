@@ -111,7 +111,7 @@ compositions_umap_results %>%
   ggplot(aes(UMAP1,UMAP2)) +
   geom_point(size = 1.5, aes(colour = lib_type, group = SRR)) +
   geom_point(data = test_coordinates, aes(UMAP1, UMAP2), colour = "black", shape = 1, size = 5, stroke = 3) +
-  geom_text(data = test_coordinates, aes(UMAP1, UMAP2, label = gsub("sample_","", sample)), size = 6, nudge_x = 1, nudge_y = 1) +
+  geom_text(data = test_coordinates, aes(UMAP1, UMAP2, label = sample), size = 6, nudge_x = 1, nudge_y = 1) +
   theme_bw(base_size = 14) +
   theme(legend.title = element_text(size = 12)) +
   #ylim(-10, 10) +
@@ -195,7 +195,7 @@ umap_grid_tile_long %>%
   geom_tile(aes(fill = percentage)) +
   scale_fill_viridis_c(option = "inferno", direction = -1) +
   geom_point(data = test_coordinates, aes(UMAP1, UMAP2), fill = "black", colour = "#609CE1", shape = 1, size = 3, stroke = 1 ) +
-  geom_text(data = test_coordinates, aes(x=UMAP1, y=UMAP2, label = gsub("sample_","", sample)), size = 3, nudge_x = 2, nudge_y = 1) +
+  geom_text(data = test_coordinates, aes(x=UMAP1, y=UMAP2, label = sample), size = 3, nudge_x = 2, nudge_y = 1) +
   ggtitle("percent of library per tile") +
   facet_wrap(facets = "library_type", ncol = 5) +
   theme(text = element_text(family = "sans"), aspect.ratio = 0.8, panel.background = element_rect(fill = "#feffe9"), panel.grid = element_blank(), plot.title = element_text(size = 14, hjust = 0.5)) -> umap_grid_tile_long_plot
@@ -227,7 +227,7 @@ test_grid %>%
 
 test_percentage %>% 
   mutate(library_type = factor(library_type, levels = sort(unique(library_type), decreasing = TRUE))) %>% 
-  mutate(sample = gsub("sample_", "", sample)) %>% 
+  mutate(sample = sample) %>% 
   ggplot(aes(sample, library_type, fill = percent)) +
   geom_tile() +
   scale_fill_gradient(low = "white", high = "red") +
