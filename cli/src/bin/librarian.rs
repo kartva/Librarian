@@ -1,6 +1,7 @@
 use colored::Colorize;
 use std::fs::{File, OpenOptions};
 use std::path::{PathBuf, Path};
+use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
 use fastq2comp::extract_comp::{run, FASTQReader, SampleArgs};
@@ -60,7 +61,7 @@ struct Cli {
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
-fn main() {
+fn main() -> ExitCode {
     let args = Cli::from_args();
 
     SimpleLogger::new()
@@ -71,9 +72,10 @@ fn main() {
         .init()
         .expect("Couldn't initialize logger");
 
-    query(args).unwrap_or_else(|_| {
-        std::process::exit(1);
-    });
+    match query(args) {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(_) => ExitCode::FAILURE,
+    }
 }
 
 fn query(args: Cli) -> Result<(), ()> {
@@ -132,7 +134,7 @@ fn query(args: Cli) -> Result<(), ()> {
             working_dir = std::env::current_dir().unwrap().join(&args.output_dir);
         }
 
-        query_local(comps, &working_dir, args.raw);
+        query_local(comps, &working_dir, args.raw)?;
         info!("{} {:?}", "Created files in".green(), &working_dir);
     } else {
         let res = query_server(args.api, comps);
@@ -187,7 +189,7 @@ fn query_server(url: String, comps: Vec<FileComp>) -> Vec<Plot> {
         .expect("unable to extract JSON from server response. server may be down")
 }
 
-fn query_local(comps: Vec<FileComp>, working_dir: &Path, raw_only: bool) {
+fn query_local(comps: Vec<FileComp>, working_dir: &Path, raw_only: bool) -> Result<(), ()> {
     info!("Running locally, using workdir {:?}", working_dir);
     assert!(!comps.is_empty());
 
@@ -200,5 +202,5 @@ fn query_local(comps: Vec<FileComp>, working_dir: &Path, raw_only: bool) {
     };
     let script_dir = get_script_dir();
 
-    run_script(&script_dir, working_dir, script_opt, input).expect("R script should be successful");
+    run_script(&script_dir, working_dir, script_opt, input).map_err(|_| error!("Failed to run script"))
 }

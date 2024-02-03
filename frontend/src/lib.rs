@@ -79,7 +79,7 @@ pub mod io_utils {
 
     // Reader is a wrapper over BufRead
     // And provides an interface over the actual reading.
-    pub fn get_reader(file: File) -> BufReader<Box<dyn Read>> {
+    pub fn create_reader(file: File) -> BufReader<Box<dyn Read>> {
         let typ = file.raw_mime_type();
         let compressed = typ == "application/gzip" || typ == "application/x-gzip";
 
