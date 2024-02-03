@@ -1,17 +1,16 @@
 import Worker from "worker-loader!./worker.js";
+import { get_update_threshold } from "./exports";
 
 const wasm = import("../pkg/index").then((wasm) => {
     function processFile (files) {
         const wasmProcess = new Worker();
 
         let status = document.getElementById('status');
-        status.innerText = "Waiting on server response... May take up to 5 minutes."; //display waiting message
         status.classList.remove('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show'); //remove alert status if it exists
 
         console.info("Extracting compositions.")
-        wasmProcess.onmessage = function (e) {
-            let result = e.data;
-
+        
+        let finished = function (result) {
             if (result.err) {
                 status.innerText = `Error encountered while processing:\n${result.err}`;
                 status.classList.add('alert', 'alert-danger', 'alert-dismissible', 'fade', 'show');
@@ -20,6 +19,7 @@ const wasm = import("../pkg/index").then((wasm) => {
                 throw new Error("Script panic'ed.");
 
             } else {
+                status.innerText = "Waiting on server response... May take up to 5 minutes."; //display waiting message
                 console.info("Extracted compositions.")
                 async function fetch_plot (compositions) {
                     console.info("Fetching plots.")
@@ -141,6 +141,23 @@ const wasm = import("../pkg/index").then((wasm) => {
             }
         }
 
+        wasmProcess.onmessage = (msg) => {
+            let e = msg.data;
+            if (e.type == "finished") {
+                document.getElementById('progress').classList.add('d-none');
+                finished(e);
+            }
+            else if (e.type == "next_file") {
+                document.getElementById('progress-file').innerText = `Processing ${e.file.name}`;
+                document.getElementById('progressbar').value = 0;
+                let chunk_size = Number(get_update_threshold());
+                document.getElementById('progressbar').max = (e.file.size / chunk_size);
+            } else if (e.type == "progress") {
+                document.getElementById('progressbar').value += e.amount;
+            }
+        };
+
+        document.getElementById('progress').classList.remove('d-none'); //display the progress bar
         wasmProcess.postMessage (files);
     }
 
@@ -170,12 +187,6 @@ const wasm = import("../pkg/index").then((wasm) => {
 
     // Hide/display some element after/before loading
     function loading(disabled){
-        if(disabled){
-            document.getElementById('spinner').classList.remove('d-none'); //display the spinner
-        }else{
-            document.getElementById('spinner').classList.add('d-none');
-        }
-
         //disabled the run button to avoid multiple launches
         document.getElementById('run').disabled = disabled;
         document.getElementById('file_selector').disabled = disabled;

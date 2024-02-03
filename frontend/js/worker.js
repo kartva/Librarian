@@ -7,7 +7,8 @@ onmessage = async function(e) {
 	let result = [];
 	let res;
 	for (let file of files) {
-		console.debug(file)
+		postMessage({type: "next_file", file: file});
+		console.debug("Running wasm for file: " + file['name']);
 		
 		try {
 			res = JSON.parse(wasm.run_json_exported(file));
@@ -21,5 +22,6 @@ onmessage = async function(e) {
 		}
 	}
 
-	postMessage({out: result});
+	console.debug("Finished running wasm");
+	postMessage({type: "finished", out: result});
 }

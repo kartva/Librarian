@@ -76,22 +76,21 @@
                                 <button type="button" id="download_plots" class="btn btn-lg btn-primary d-none">Download Plots</button>
                             </div>
                         </div>
+
+                        <!-- Display message while waiting for the results -->
+                        <div class="row" id="progress">
+                            <div class="col-md-12">
+                                <label for="progressbar" id="progress-file" class="row mt-2 font-italic"></label>
+                                <progress id="progressbar" max="100" value="0" class="row mt-2" style="width: 100%;"></progress>
+                            </div>
+                        </div>
+                        <div class="row" >
+                            <div class="col-md-12 d-flex justify-content-center">
+                                <p class="mt-2 font-italic" id="status"></p>
+                            </div>
+                        </div>
                            
                         <div>
-                            <!-- Display message while waiting for the results -->
-                            <div class="row" id="spinner">
-                                <div class="col-md-12 d-flex justify-content-center">
-                                    <div class="spinner-border" role="spinner_status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" >
-                                <div class="col-md-12 d-flex justify-content-center">
-                                    <p class="mt-2 font-italic" id="status"></p>
-                                </div>
-                            </div>
-
                             <div id="samples_table" class="row col-md-12 mb-4 d-none">
                                 <table>
                                     <thead>

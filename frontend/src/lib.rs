@@ -16,15 +16,16 @@ pub mod io_utils {
     use wasm_bindgen::prelude::*;
     use web_sys::FileReaderSync;
 
+    #[wasm_bindgen(module = "/js/exports.js")]
+    extern "C" {
+        pub fn update_progress();
+        pub fn get_update_threshold () -> u64;
+    }
+
     #[wasm_bindgen]
     extern "C" {
         #[wasm_bindgen(js_namespace = console)]
         pub fn debug(msg: &str);
-
-        #[cfg(debug_assertions)]
-        // get js time
-        #[wasm_bindgen(js_namespace = Date, js_name = now)]
-        pub fn now() -> f64;
     }
     use std::io::{self, BufReader, Read};
 
@@ -33,11 +34,8 @@ pub mod io_utils {
         pos: u64,
         file_reader: FileReaderSync,
         file: File,
-
-        #[cfg(debug_assertions)]
+        progress: u64,
         thresh: u64,
-        #[cfg(debug_assertions)]
-        time_start: f64,
     }
 
     #[allow(clippy::new_without_default)]
@@ -47,10 +45,8 @@ pub mod io_utils {
                 pos: 0,
                 file_reader: FileReaderSync::new().unwrap(),
                 file: f,
-                #[cfg(debug_assertions)]
-                time_start: now(),
-                #[cfg(debug_assertions)]
-                thresh: 0,
+                progress: 0,
+                thresh: get_update_threshold(),
             }
         }
     }
@@ -61,13 +57,10 @@ pub mod io_utils {
             let arr = Uint8Array::new(&self.file_reader.read_as_array_buffer(sl.as_ref()).unwrap());
             let len = std::cmp::min(buf.len(), arr.length() as usize);
 
-            #[cfg(debug_assertions)] {
-                self.thresh += len as u64;
-                if self.thresh > 100_000_000 {
-                    let new_time = now();
-                    debug(format!("Read {} bytes, {} elapsed", self.thresh, new_time - self.time_start).as_str());
-                    self.thresh = 0;
-                }
+            self.progress += len as u64;
+            if self.progress > self.thresh {
+                update_progress();
+                self.progress = 0;
             }
 
             arr.slice(0, len as u32).copy_to(&mut buf[..len]);
